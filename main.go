@@ -66,7 +66,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 	if req.Method == "GET" {
 
-		countdownTimes := board.falseAlarmTimes
+		countdownTimes := board.falseAlarmTimes //append([]time.Time{}, board.falseAlarmTimes...)
 
 		dead := false
 		for launcherName, launcherBoard := range game.Boards {
