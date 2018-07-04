@@ -33,7 +33,7 @@ type Game struct {
 }
 
 func missileLanded(now, launched time.Time) bool {
-	return launched.Add(MissileFlightTime).After(now)
+	return now.After(launched.Add(MissileFlightTime))
 }
 
 func (g *Game) TimersRemainLive(now time.Time) bool {
