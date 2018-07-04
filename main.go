@@ -76,7 +76,7 @@ var mutex sync.Mutex
 func addFalseAlarm(victimName PlayerName, at time.Time) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	if game.IsOver() {
+	if game.IsOver(at) {
 		log.Println("GAME IS OVER! ignored false alarm for", victimName)
 		return
 	}
@@ -100,6 +100,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	log.Println("got request:", *req)
+	now := time.Now()
 	requesterName := PlayerName(strings.TrimLeft(req.URL.Path, "/"))
 	board, ok := game.Boards[requesterName]
 	if !ok {
@@ -124,7 +125,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 			if launcherBoard.launchedTime == nil {
 				continue
 			}
-			if time.Since(*launcherBoard.launchedTime) > MissileFlightTime {
+			if now.Sub(*launcherBoard.launchedTime) > MissileFlightTime {
 				dead = true
 				fmt.Fprintln(w, "you have been killed by", launcherName)
 			}
@@ -136,12 +137,12 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Player is alive, so tell them status.
-		if game.IsOver() {
+		if game.IsOver(now) {
 			fmt.Fprintln(w, "game is over")
 			return
 		}
 
-		timeLeft := time.Until((*game.Started).Add(GameDuration))
+		timeLeft := (*game.Started).Add(GameDuration).Sub(now)
 		if timeLeft < 0 {
 			fmt.Fprintln(w, "** OVERTIME:", -timeLeft, " **")
 		} else {
@@ -150,7 +151,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 		sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(countdownTimes))
 		for _, t := range countdownTimes {
-			fmt.Fprintf(w, "%.3f\n", time.Until(t.Add(MissileFlightTime)).Seconds())
+			fmt.Fprintf(w, "%.3f\n", (t.Add(MissileFlightTime)).Sub(now).Seconds())
 		}
 	} else if req.Method == "POST" {
 		if board.launchedTime != nil {
@@ -158,7 +159,6 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(400)
 			return
 		}
-		now := time.Now()
 		board.launchedTime = &now
 	}
 }
