@@ -225,6 +225,7 @@ func main() {
 			}
 
 			command := args[0]
+			now := time.Now()
 
 			func() {
 				mutex.Lock()
@@ -240,12 +241,15 @@ func main() {
 					addFalseAlarm(victimName, time.Now())
 
 				case "s":
-					now := time.Now()
+					if game.Phase(now) != PreStart {
+						log.Println("game not in prestart")
+						return
+					}
+
 					game.Started = &now
 					log.Println("started game at", *game.Started)
 
 				case "d":
-					now := time.Now()
 					log.Println(game)
 					log.Println(game.Phase(now))
 				}
