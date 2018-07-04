@@ -101,7 +101,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 		sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(countdownTimes))
 		for _, t := range countdownTimes {
-			fmt.Fprintln(w, time.Until(t.Add(MissileFlightTime)))
+			fmt.Fprintf(w, "%.3f\n", time.Until(t.Add(MissileFlightTime)).Seconds())
 		}
 	} else if req.Method == "POST" {
 		if board.launchedTime != nil {
