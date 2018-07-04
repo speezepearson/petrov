@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"sort"
@@ -20,7 +21,9 @@ type PlayerBoard struct {
 }
 
 const (
-	MissileFlightTime = 1 * time.Minute
+	MissileFlightTime        = 1 * time.Minute
+	MeanFalseAlarmsPerSecond = 1 / float64(60)
+	RollsPerSecond           = 1
 )
 
 type Game struct {
@@ -33,6 +36,15 @@ var game = Game{
 		"Bob":   &PlayerBoard{},
 	},
 }
+
+var playerList []PlayerName
+
+func init() {
+	for p := range game.Boards {
+		playerList = append(playerList, p)
+	}
+}
+
 var mutex sync.Mutex
 
 func addFalseAlarm(victimName PlayerName) {
@@ -113,6 +125,21 @@ func main() {
 			addFalseAlarm(victimName)
 		}
 	})()
+
+	go func() {
+		ticker := time.NewTicker(time.Second / RollsPerSecond)
+		for {
+			<-ticker.C
+
+			if rand.Float64() < float64(MeanFalseAlarmsPerSecond)/RollsPerSecond {
+				i := rand.Intn(len(playerList))
+				victimName := playerList[i]
+
+				addFalseAlarm(victimName)
+			}
+		}
+	}()
+
 	http.HandleFunc("/", HandleRequest)
 	log.Fatal(http.ListenAndServe(":2344", nil))
 }
