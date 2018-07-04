@@ -103,7 +103,6 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	fmt.Println("hi")
 	go (func() {
 		for {
 			line, err := bufio.NewReader(os.Stdin).ReadString('\n')
