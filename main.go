@@ -52,13 +52,13 @@ func (g *Game) TimersRemainLive(now time.Time) bool {
 	return false
 }
 
-type gamePhase int
+type gamePhase string
 
 const (
-	PreStart gamePhase = iota
-	Running
-	Overtime
-	Ended
+	PreStart gamePhase = "PreStart"
+	Running            = "Running"
+	Overtime           = "Overtime"
+	Ended              = "Ended"
 )
 
 func (g *Game) AnyMissileLanded(now time.Time) bool {
@@ -136,7 +136,7 @@ func (p FuckGo_lessthan_time_dot_Time_greaterthan) Swap(i, j int)      { p[i], p
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	log.Println("got request:", *req)
+
 	now := time.Now()
 	requesterName := PlayerName(strings.TrimLeft(req.URL.Path, "/"))
 	board, ok := game.Boards[requesterName]
@@ -243,6 +243,11 @@ func main() {
 					now := time.Now()
 					game.Started = &now
 					log.Println("started game at", *game.Started)
+
+				case "d":
+					now := time.Now()
+					log.Println(game)
+					log.Println(game.Phase(now))
 				}
 			}()
 
