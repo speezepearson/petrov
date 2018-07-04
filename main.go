@@ -144,6 +144,8 @@ func main() {
 		}
 	}()
 
+	port := "2344"
+	log.Println("listening on", port)
 	http.HandleFunc("/", HandleRequest)
-	log.Fatal(http.ListenAndServe(":2344", nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
