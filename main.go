@@ -21,13 +21,39 @@ type PlayerBoard struct {
 }
 
 const (
-	MissileFlightTime        = 1 * time.Minute
+	GameDuration             = 1 * time.Minute
+	MissileFlightTime        = 15 * time.Second
 	MeanFalseAlarmsPerSecond = 1 / float64(60)
 	RollsPerSecond           = 1
 )
 
 type Game struct {
-	Boards map[PlayerName]*PlayerBoard
+	Started *time.Time // nil -> not started
+	Boards  map[PlayerName]*PlayerBoard
+}
+
+func missileLanded(now, launched time.Time) bool {
+	return launched.Add(MissileFlightTime).After(now)
+}
+
+func (g *Game) TimersRemainLive(now time.Time) bool {
+	for _, board := range g.Boards {
+		if board.launchedTime != nil && !missileLanded(now, *board.launchedTime) {
+			return true
+		}
+
+		for _, alarm := range board.falseAlarmTimes {
+			if !missileLanded(now, alarm) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (g *Game) IsOver(now time.Time) bool {
+	return g.Started != nil && now.After((*g.Started).Add(GameDuration)) && !g.TimersRemainLive(now)
 }
 
 var game = Game{
@@ -50,6 +76,11 @@ var mutex sync.Mutex
 func addFalseAlarm(victimName PlayerName, at time.Time) {
 	mutex.Lock()
 	defer mutex.Unlock()
+	if game.IsOver() {
+		log.Println("GAME IS OVER! ignored false alarm for", victimName)
+		return
+	}
+
 	board, ok := game.Boards[victimName]
 	log.Println("got a false alarm for '", victimName, "'")
 	if !ok {
@@ -78,6 +109,11 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 	if req.Method == "GET" {
 
+		if game.Started == nil {
+			fmt.Fprintln(w, "game not started")
+			return
+		}
+
 		countdownTimes := append([]time.Time{}, board.falseAlarmTimes...)
 
 		dead := false
@@ -97,6 +133,19 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 		if dead {
 			return
+		}
+
+		// Player is alive, so tell them status.
+		if game.IsOver() {
+			fmt.Fprintln(w, "game is over")
+			return
+		}
+
+		timeLeft := time.Until((*game.Started).Add(GameDuration))
+		if timeLeft < 0 {
+			fmt.Fprintln(w, "** OVERTIME:", -timeLeft, " **")
+		} else {
+			fmt.Fprintln(w, timeLeft, "remaining...")
 		}
 
 		sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(countdownTimes))
