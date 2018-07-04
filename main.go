@@ -47,7 +47,7 @@ func init() {
 
 var mutex sync.Mutex
 
-func addFalseAlarm(victimName PlayerName) {
+func addFalseAlarm(victimName PlayerName, at time.Time) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	board, ok := game.Boards[victimName]
@@ -56,7 +56,7 @@ func addFalseAlarm(victimName PlayerName) {
 		log.Println("...who doesn't exist")
 		return
 	}
-	board.falseAlarmTimes = append(board.falseAlarmTimes, time.Now())
+	board.falseAlarmTimes = append(board.falseAlarmTimes, at)
 }
 
 type FuckGo_lessthan_time_dot_Time_greaterthan []time.Time
@@ -114,6 +114,13 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func addFalseAlarmToRandomVictim(at time.Time) {
+	i := rand.Intn(len(playerList))
+	victimName := playerList[i]
+
+	addFalseAlarm(victimName, at)
+}
+
 func main() {
 	go (func() {
 		for {
@@ -122,7 +129,7 @@ func main() {
 				log.Fatal(err)
 			}
 			victimName := PlayerName(strings.TrimSpace(line))
-			addFalseAlarm(victimName)
+			addFalseAlarm(victimName, time.Now())
 		}
 	})()
 
