@@ -113,10 +113,8 @@ func init() {
 var mutex sync.Mutex
 
 func addFalseAlarm(victimName PlayerName, at time.Time) {
-	mutex.Lock()
-	defer mutex.Unlock()
 	if game.Phase(at) == Ended || game.Phase(at) == PreStart {
-		log.Println("GAME IS OVER! ignored false alarm for", victimName)
+		log.Println("GAME NOT RUNNING! ignored false alarm for", victimName)
 		return
 	}
 
@@ -218,8 +216,36 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			victimName := PlayerName(strings.TrimSpace(line))
-			addFalseAlarm(victimName, time.Now())
+			line = strings.TrimSpace(line)
+			args := strings.Fields(line)
+
+			if len(args) == 0 {
+				log.Println("couldn't parse:", line)
+				continue
+			}
+
+			command := args[0]
+
+			func() {
+				mutex.Lock()
+				defer mutex.Unlock()
+
+				switch command {
+				case "a":
+					if len(args) != 2 {
+						log.Println("wrong number of args for", command)
+						return
+					}
+					victimName := PlayerName(args[1])
+					addFalseAlarm(victimName, time.Now())
+
+				case "s":
+					now := time.Now()
+					game.Started = &now
+					log.Println("started game at", *game.Started)
+				}
+			}()
+
 		}
 	})()
 
@@ -229,7 +255,9 @@ func main() {
 			<-ticker.C
 
 			if rand.Float64() < float64(MeanFalseAlarmsPerSecond)/RollsPerSecond {
+				mutex.Lock()
 				addFalseAlarmToRandomVictim(time.Now())
+				mutex.Unlock()
 			}
 		}
 	}()
