@@ -139,10 +139,7 @@ func main() {
 			<-ticker.C
 
 			if rand.Float64() < float64(MeanFalseAlarmsPerSecond)/RollsPerSecond {
-				i := rand.Intn(len(playerList))
-				victimName := playerList[i]
-
-				addFalseAlarm(victimName)
+				addFalseAlarmToRandomVictim(time.Now())
 			}
 		}
 	}()
