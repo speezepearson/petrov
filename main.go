@@ -52,8 +52,47 @@ func (g *Game) TimersRemainLive(now time.Time) bool {
 	return false
 }
 
-func (g *Game) IsOver(now time.Time) bool {
-	return g.Started != nil && now.After((*g.Started).Add(GameDuration)) && !g.TimersRemainLive(now)
+type gamePhase int
+
+const (
+	PreStart gamePhase = iota
+	Running
+	Overtime
+	Ended
+)
+
+func (g *Game) AnyMissileLanded(now time.Time) bool {
+	for _, launcherBoard := range g.Boards {
+		if launcherBoard.launchedTime == nil {
+			continue
+		}
+
+		if now.Sub(*launcherBoard.launchedTime) > MissileFlightTime {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (g *Game) Phase(now time.Time) gamePhase {
+	if g.Started == nil {
+		return PreStart
+	}
+
+	if now.After((*g.Started).Add(GameDuration)) {
+		if g.TimersRemainLive(now) {
+			return Overtime
+		} else {
+			return Ended
+		}
+	}
+
+	if g.AnyMissileLanded(now) {
+		return Ended
+	}
+
+	return Running
 }
 
 var game = Game{
@@ -76,7 +115,7 @@ var mutex sync.Mutex
 func addFalseAlarm(victimName PlayerName, at time.Time) {
 	mutex.Lock()
 	defer mutex.Unlock()
-	if game.IsOver(at) {
+	if game.Phase(at) == Ended || game.Phase(at) == PreStart {
 		log.Println("GAME IS OVER! ignored false alarm for", victimName)
 		return
 	}
@@ -137,7 +176,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Player is alive, so tell them status.
-		if game.IsOver(now) {
+		if game.Phase(now) == Ended {
 			fmt.Fprintln(w, "game is over")
 			return
 		}
@@ -151,7 +190,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 		sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(countdownTimes))
 		for _, t := range countdownTimes {
-			fmt.Fprintf(w, "%.3f\n", (t.Add(MissileFlightTime)).Sub(now).Seconds())
+			if !missileLanded(now, t) {
+				fmt.Fprintf(w, "%.3f\n", (t.Add(MissileFlightTime)).Sub(now).Seconds())
+			}
 		}
 	} else if req.Method == "POST" {
 		if board.launchedTime != nil {
