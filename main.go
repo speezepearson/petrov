@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var Debug = flag.Bool("debug", false, "")
+
 type PlayerName string
 
 type PlayerBoard struct {
@@ -36,14 +38,17 @@ func (pb *PlayerBoard) String() string {
 var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
 
 const (
-	MissileFlightTime        = 15 * time.Second
-	MeanFalseAlarmsPerSecond = 1 / float64(10)
-	RollsPerSecond           = 1
+	MissileFlightTime                 = 10 * time.Second
+	MeanFalseAlarmsPerSecondPerPlayer = 1 / float64(30)
 )
 
 type Game struct {
 	Started *time.Time // nil -> not started
 	Boards  map[PlayerName]*PlayerBoard
+}
+
+func (g *Game) Start(now time.Time) {
+	g.Started = &now
 }
 
 func (g *Game) String() string {
@@ -155,6 +160,19 @@ func init() {
 
 var mutex sync.Mutex
 
+func addFalseAlarmsForever(victimName PlayerName) {
+	for {
+		delay := rand.ExpFloat64() / MeanFalseAlarmsPerSecondPerPlayer
+		time.Sleep(time.Duration(delay * float64(time.Second)))
+		func() {
+			mutex.Lock()
+			defer mutex.Unlock()
+			now := time.Now()
+			addFalseAlarm(victimName, now)
+		}()
+	}
+}
+
 func addFalseAlarm(victimName PlayerName, at time.Time) {
 	if game.Phase(at) == Ended || game.Phase(at) == PreStart {
 		log.Println("GAME NOT RUNNING! ignored false alarm for", victimName)
@@ -244,6 +262,11 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	now := time.Now()
 	requesterName := PlayerName(strings.TrimLeft(req.URL.Path, "/"))
+
+	if *Debug {
+		log.Println(requesterName, "req=", *req, "state=", game.String())
+	}
+
 	board, ok := game.Boards[requesterName]
 	if !ok {
 		log.Println("request is for player", req.URL.Path, ", who doesn't exist")
@@ -285,13 +308,6 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func addFalseAlarmToRandomVictim(at time.Time) {
-	i := rand.Intn(len(playerList))
-	victimName := playerList[i]
-
-	addFalseAlarm(victimName, at)
-}
-
 func main() {
 	flag.Parse()
 
@@ -310,11 +326,12 @@ func main() {
 			}
 
 			command := args[0]
-			now := time.Now()
 
 			func() {
 				mutex.Lock()
 				defer mutex.Unlock()
+
+				now := time.Now()
 
 				switch command {
 				case "a":
@@ -331,7 +348,7 @@ func main() {
 						return
 					}
 
-					game.Started = &now
+					game.Start(now)
 					log.Println("started game at", *game.Started)
 
 				case "d":
@@ -343,18 +360,11 @@ func main() {
 		}
 	})()
 
-	go func() {
-		ticker := time.NewTicker(time.Second / RollsPerSecond)
-		for {
-			<-ticker.C
-
-			if rand.Float64() < float64(MeanFalseAlarmsPerSecond)/RollsPerSecond {
-				mutex.Lock()
-				addFalseAlarmToRandomVictim(time.Now())
-				mutex.Unlock()
-			}
-		}
-	}()
+	mutex.Lock()
+	for player, _ := range game.Boards {
+		go addFalseAlarmsForever(player)
+	}
+	mutex.Unlock()
 
 	port := "2344"
 	log.Println("listening on", port)
