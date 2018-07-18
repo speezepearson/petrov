@@ -128,16 +128,16 @@ func (g *Game) Phase(now time.Time) gamePhase {
 		return PreStart
 	}
 
-	if g.TimersRemainLive(now) {
-		if now.After((*g.Started).Add(*GameDuration)) {
-			return Overtime
-		} else {
-			return Running
-		}
+	if g.AnyMissileLanded(now) && !g.TimersRemainLive(now) {
+		return Ended
 	}
 
-	if g.AnyMissileLanded(now) {
-		return Ended
+	if now.After((*g.Started).Add(*GameDuration)) {
+		if g.TimersRemainLive(now) {
+			return Overtime
+		} else {
+			return Ended
+		}
 	}
 
 	return Running
