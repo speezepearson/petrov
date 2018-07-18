@@ -98,11 +98,11 @@ func (g *Game) Phase(now time.Time) gamePhase {
 		return PreStart
 	}
 
-	if now.After((*g.Started).Add(GameDuration)) {
-		if g.TimersRemainLive(now) {
+	if g.TimersRemainLive(now) {
+		if now.After((*g.Started).Add(GameDuration)) {
 			return Overtime
 		} else {
-			return Ended
+			return Running
 		}
 	}
 
