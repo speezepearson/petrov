@@ -194,9 +194,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 	} else if req.Method == "POST" {
 		if board.launchedTime != nil {
+			w.WriteHeader(400)
 			fmt.Fprintln(w, "you have already launched")
 			log.Println("dupe launch from", requesterName)
-			w.WriteHeader(400)
 			return
 		}
 		log.Println("launch! from", requesterName)
