@@ -75,6 +75,24 @@ func (g *Game) AnyMissileLanded(now time.Time) bool {
 	return false
 }
 
+func (g *Game) PlayerIsAlive(now time.Time, player PlayerName) bool {
+	for otherPlayer, launcherBoard := range g.Boards {
+		if player == otherPlayer {
+			continue
+		}
+
+		if launcherBoard.launchedTime == nil {
+			continue
+		}
+
+		if missileLanded(now, *launcherBoard.launchedTime) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (g *Game) Phase(now time.Time) gamePhase {
 	if g.Started == nil {
 		return PreStart
@@ -193,6 +211,20 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	} else if req.Method == "POST" {
+		if !game.PlayerIsAlive(now, requesterName) {
+			w.WriteHeader(400)
+			fmt.Fprintln(w, "can't launch - you are dead!")
+			log.Println("dead player tried to launch", requesterName)
+			return
+		}
+
+		if game.Phase(now) != Running && game.Phase(now) != Overtime {
+			w.WriteHeader(400)
+			fmt.Fprintln(w, "can't launch - game is not running!")
+			log.Println("out-of-bounds launch attempt from", requesterName)
+			return
+		}
+
 		if board.launchedTime != nil {
 			w.WriteHeader(400)
 			fmt.Fprintln(w, "you have already launched")
