@@ -1,7 +1,9 @@
 #!/bin/bash
 
-ADDRESS=localhost:2344
-NAME=$1
+ADDRESS=$1
+NAME=$2
+
+trap 'kill $READER_PID; exit' SIGINT SIGTERM
 
 reader() {
     while true
@@ -14,7 +16,7 @@ reader() {
     done
 }
 
-reader &
+reader & READER_PID=$!
 
 while true
 do
