@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -31,10 +32,11 @@ func (pb *PlayerBoard) String() string {
 		strings.Join(falseAlarmStrs, ", "))
 }
 
+var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
+
 const (
-	GameDuration             = 1 * time.Minute
 	MissileFlightTime        = 15 * time.Second
-	MeanFalseAlarmsPerSecond = 1 / float64(20)
+	MeanFalseAlarmsPerSecond = 1 / float64(10)
 	RollsPerSecond           = 1
 )
 
@@ -121,7 +123,7 @@ func (g *Game) Phase(now time.Time) gamePhase {
 	}
 
 	if g.TimersRemainLive(now) {
-		if now.After((*g.Started).Add(GameDuration)) {
+		if now.After((*g.Started).Add(*GameDuration)) {
 			return Overtime
 		} else {
 			return Running
@@ -219,7 +221,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		timeLeft := (*game.Started).Add(GameDuration).Sub(now)
+		timeLeft := (*game.Started).Add(*GameDuration).Sub(now)
 		if timeLeft < 0 {
 			fmt.Fprintln(w, "** OVERTIME:", -timeLeft, " **")
 		} else {
@@ -266,6 +268,8 @@ func addFalseAlarmToRandomVictim(at time.Time) {
 }
 
 func main() {
+	flag.Parse()
+
 	go (func() {
 		for {
 			line, err := bufio.NewReader(os.Stdin).ReadString('\n')
