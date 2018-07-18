@@ -34,7 +34,7 @@ func (pb *PlayerBoard) String() string {
 const (
 	GameDuration             = 1 * time.Minute
 	MissileFlightTime        = 15 * time.Second
-	MeanFalseAlarmsPerSecond = 1 / float64(60)
+	MeanFalseAlarmsPerSecond = 1 / float64(20)
 	RollsPerSecond           = 1
 )
 
