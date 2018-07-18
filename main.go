@@ -67,7 +67,7 @@ func (g *Game) AnyMissileLanded(now time.Time) bool {
 			continue
 		}
 
-		if now.Sub(*launcherBoard.launchedTime) > MissileFlightTime {
+		if missileLanded(now, *launcherBoard.launchedTime) {
 			return true
 		}
 	}
