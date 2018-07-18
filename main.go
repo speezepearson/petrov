@@ -20,6 +20,17 @@ type PlayerBoard struct {
 	launchedTime    *time.Time
 }
 
+func (pb *PlayerBoard) String() string {
+	var falseAlarmStrs []string
+	for _, alarm := range pb.falseAlarmTimes {
+		falseAlarmStrs = append(falseAlarmStrs, alarm.String())
+	}
+
+	return fmt.Sprintf("launch:%+v, alarms:{%s}",
+		pb.launchedTime,
+		strings.Join(falseAlarmStrs, ", "))
+}
+
 const (
 	GameDuration             = 1 * time.Minute
 	MissileFlightTime        = 15 * time.Second
@@ -30,6 +41,17 @@ const (
 type Game struct {
 	Started *time.Time // nil -> not started
 	Boards  map[PlayerName]*PlayerBoard
+}
+
+func (g *Game) String() string {
+	now := time.Now()
+	var boardStrings []string
+
+	for player, board := range g.Boards {
+		boardStrings = append(boardStrings, fmt.Sprintf("%s{%s}", player, board.String()))
+	}
+
+	return fmt.Sprintf("Game{Phase:%s, Started: %+v, Boards: [%s]}", g.Phase(now), g.Started, strings.Join(boardStrings, ", "))
 }
 
 func missileLanded(now, launched time.Time) bool {
