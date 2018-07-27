@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"bufio"
 	"flag"
 	"fmt"
@@ -169,11 +170,73 @@ func addFalseAlarm(victimName PlayerName, at time.Time) {
 	board.falseAlarmTimes = append(board.falseAlarmTimes, at)
 }
 
+type PlayerView struct {
+	TimeRemaining time.Duration
+	AlarmTimesRemaining []time.Duration
+	KilledBy string
+	Phase gamePhase
+	TimeToMyImpact *time.Duration
+}
+
 type FuckGo_lessthan_time_dot_Time_greaterthan []time.Time
 
 func (p FuckGo_lessthan_time_dot_Time_greaterthan) Len() int           { return len(p) }
 func (p FuckGo_lessthan_time_dot_Time_greaterthan) Less(i, j int) bool { return p[i].Before(p[j]) }
 func (p FuckGo_lessthan_time_dot_Time_greaterthan) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+func mustSucceed(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (game *Game) View(p PlayerName, now time.Time) PlayerView {
+	result := PlayerView{
+		Phase: game.Phase(now),
+		TimeRemaining: (*game.Started).Add(*GameDuration).Sub(now),
+	}
+	if game.Started == nil {
+		return result
+	}
+	board, _ := game.Boards[p]
+	if board.launchedTime != nil {
+		timeToMyImpact := board.launchedTime.Add(MissileFlightTime).Sub(now)
+		result.TimeToMyImpact = &timeToMyImpact
+	}
+	alarmTimes := append([]time.Time{}, board.falseAlarmTimes...)
+
+	for launcherName, launcherBoard := range game.Boards {
+		if launcherName == p {
+			continue
+		}
+		if launcherBoard.launchedTime == nil {
+			continue
+		}
+		if missileLanded(now, *launcherBoard.launchedTime) {
+			result.KilledBy = string(launcherName)
+			return result
+		}
+		alarmTimes = append(alarmTimes, *launcherBoard.launchedTime)
+	}
+
+	// Player is alive, so tell them status.
+	if game.Phase(now) == Ended {
+		return result
+	}
+
+	var alarmTimesRemaining []time.Duration
+
+	sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(alarmTimes))
+
+	for _, t := range alarmTimes {
+		if !missileLanded(now, t) {
+			alarmTimesRemaining = append(alarmTimesRemaining, t.Add(MissileFlightTime).Sub(now))
+		}
+	}
+
+	result.AlarmTimesRemaining = alarmTimesRemaining
+	return result
+}
 
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
@@ -188,52 +251,14 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if req.Method == "GET" {
-
-		if game.Started == nil {
-			fmt.Fprintln(w, "game not started")
-			return
+		pv := game.View(requesterName, now)
+		j, err := json.Marshal(pv)
+		mustSucceed(err)
+		_, err = w.Write(j)
+		if err != nil {
+			log.Println("err:", err)
 		}
-
-		countdownTimes := append([]time.Time{}, board.falseAlarmTimes...)
-
-		dead := false
-		for launcherName, launcherBoard := range game.Boards {
-			if launcherName == requesterName {
-				continue
-			}
-			if launcherBoard.launchedTime == nil {
-				continue
-			}
-			if now.Sub(*launcherBoard.launchedTime) > MissileFlightTime {
-				dead = true
-				fmt.Fprintln(w, "you have been killed by", launcherName)
-			}
-			countdownTimes = append(countdownTimes, *launcherBoard.launchedTime)
-		}
-
-		if dead {
-			return
-		}
-
-		// Player is alive, so tell them status.
-		if game.Phase(now) == Ended {
-			fmt.Fprintln(w, "game is over")
-			return
-		}
-
-		timeLeft := (*game.Started).Add(*GameDuration).Sub(now)
-		if timeLeft < 0 {
-			fmt.Fprintln(w, "** OVERTIME:", -timeLeft, " **")
-		} else {
-			fmt.Fprintln(w, timeLeft, "remaining...")
-		}
-
-		sort.Sort(FuckGo_lessthan_time_dot_Time_greaterthan(countdownTimes))
-		for _, t := range countdownTimes {
-			if !missileLanded(now, t) {
-				fmt.Fprintf(w, "%.3f\n", (t.Add(MissileFlightTime)).Sub(now).Seconds())
-			}
-		}
+		return
 	} else if req.Method == "POST" {
 		if !game.PlayerIsAlive(now, requesterName) {
 			w.WriteHeader(400)
