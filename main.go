@@ -334,5 +334,6 @@ func main() {
 	port := "2344"
 	log.Println("listening on", port)
 	http.HandleFunc("/", HandleRequest)
+	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./client"))))
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
