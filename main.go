@@ -208,11 +208,18 @@ func mustSucceed(err error) {
 	}
 }
 
+func assert(condition bool) {
+	if *Debug && !condition {
+		panic("INVARIANT VIOLATED D:")
+	}
+}
+
 func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result := PlayerView{
 		Phase: game.Phase(now),
 	}
 	if game.Started == nil {
+		assert(game.Phase(now) == PreStart)
 		return result
 	}
 
