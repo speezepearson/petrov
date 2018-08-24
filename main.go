@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -189,11 +189,11 @@ func addFalseAlarm(victimName PlayerName, at time.Time) {
 }
 
 type PlayerView struct {
-	TimeRemaining time.Duration
+	TimeRemaining       time.Duration
 	AlarmTimesRemaining []time.Duration
-	KilledBy string
-	Phase gamePhase
-	TimeToMyImpact *time.Duration
+	KilledBy            string
+	Phase               gamePhase
+	TimeToMyImpact      *time.Duration
 }
 
 type FuckGo_lessthan_time_dot_Time_greaterthan []time.Time
@@ -210,7 +210,7 @@ func mustSucceed(err error) {
 
 func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result := PlayerView{
-		Phase: game.Phase(now),
+		Phase:         game.Phase(now),
 		TimeRemaining: (*game.Started).Add(*GameDuration).Sub(now),
 	}
 	if game.Started == nil {
