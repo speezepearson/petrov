@@ -210,12 +210,14 @@ func mustSucceed(err error) {
 
 func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result := PlayerView{
-		Phase:         game.Phase(now),
-		TimeRemaining: (*game.Started).Add(*GameDuration).Sub(now),
+		Phase: game.Phase(now),
 	}
 	if game.Started == nil {
 		return result
 	}
+
+	result.TimeRemaining = (*game.Started).Add(*GameDuration).Sub(now)
+
 	board, _ := game.Boards[p]
 	if board.launchedTime != nil {
 		timeToMyImpact := board.launchedTime.Add(MissileFlightTime).Sub(now)
