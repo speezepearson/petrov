@@ -309,12 +309,16 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
+	replyErr := func(code int, msg string) {
+		w.WriteHeader(code)
+		fmt.Fprintln(w, msg)
+		log.Println("bad request:", *req, " ==> ", code, msg)
+	}
+
 	now := time.Now()
 	requesterName, action, err := parseRequest(req)
 	if err != nil {
-		w.WriteHeader(400)
-		fmt.Fprintln(w, err)
-		log.Println("bad request:", *req, " ==> ", err)
+		replyErr(400, err.Error())
 		return
 	}
 
@@ -324,8 +328,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	board, ok := game.Boards[requesterName]
 	if !ok {
-		log.Println("request is for player", req.URL.Path, ", who doesn't exist")
-		w.WriteHeader(404)
+		replyErr(
+			404,
+			fmt.Sprintf("request is for player %s , who doesn't exist", requesterName))
 		return
 	}
 
@@ -342,30 +347,24 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 
 	case Action_Launch:
 		if !game.PlayerIsAlive(now, requesterName) {
-			w.WriteHeader(400)
-			fmt.Fprintln(w, "can't launch - you are dead!")
-			log.Println("dead player tried to launch", requesterName)
+			replyErr(400, "can't launch - you are dead!")
 			return
 		}
 
 		if game.Phase(now) != Running && game.Phase(now) != Overtime {
-			w.WriteHeader(400)
-			fmt.Fprintln(w, "can't launch - game is not running!")
-			log.Println("out-of-bounds launch attempt from", requesterName)
+			replyErr(400, "can't launch - game is not running!")
 			return
 		}
 
 		if board.launchedTime != nil {
-			w.WriteHeader(400)
-			fmt.Fprintln(w, "you have already launched")
-			log.Println("dupe launch from", requesterName)
+			replyErr(400, "you have already launched")
 			return
 		}
 		log.Println("launch! from", requesterName)
 		board.launchedTime = &now
 
 	default:
-		w.WriteHeader(400)
+		replyErr(500, fmt.Sprintf("unknown action %d", action))
 	}
 }
 
