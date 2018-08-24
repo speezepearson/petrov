@@ -6,3 +6,5 @@ export class C {
 
 export let x = new C();
 export let y = { ...{ some: "value" } }
+
+console.log({x, y});
