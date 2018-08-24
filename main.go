@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"sort"
 	"strings"
 	"sync"
@@ -209,8 +210,11 @@ func mustSucceed(err error) {
 }
 
 func assert(condition bool) {
-	if *Debug && !condition {
-		panic("INVARIANT VIOLATED D:")
+	if !condition {
+		log.Println("OH NOES AN INVARIANT:", string(debug.Stack()))
+		if *Debug {
+			panic("INVARIANT VIOLATED D:")
+		}
 	}
 }
 
