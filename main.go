@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -269,12 +270,53 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	return result
 }
 
+type Action int
+
+const (
+	Action_View Action = iota
+	Action_Launch
+)
+
+func parseRequest(req *http.Request) (PlayerName, Action, error) {
+	components := strings.Split(strings.TrimLeft(req.URL.Path, "/"), "/")
+	switch req.Method {
+	case "GET":
+		if len(components) != 1 {
+			return "", 0, errors.New(fmt.Sprintf("bad GET path: %s", req.URL.Path))
+		}
+
+		return PlayerName(components[0]), Action_View, nil
+
+	case "POST":
+		if len(components) != 2 {
+			return "", 0, errors.New(fmt.Sprintf("bad POST path: %s", req.URL.Path))
+		}
+
+		playerName, actionStr := PlayerName(components[0]), components[1]
+		switch actionStr {
+		case "launch":
+			return playerName, Action_Launch, nil
+		default:
+			return "", 0, errors.New(fmt.Sprintf("unknown action: %s", actionStr))
+		}
+
+	default:
+		return "", 0, errors.New(fmt.Sprintf("bad request type: %s", req.Method))
+	}
+}
+
 func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	now := time.Now()
-	requesterName := PlayerName(strings.TrimLeft(req.URL.Path, "/"))
+	requesterName, action, err := parseRequest(req)
+	if err != nil {
+		w.WriteHeader(400)
+		fmt.Fprintln(w, err)
+		log.Println("bad request:", *req, " ==> ", err)
+		return
+	}
 
 	if *Debug {
 		log.Println(requesterName, "req=", *req, "state=", game.String())
@@ -286,7 +328,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
-	if req.Method == "GET" {
+
+	switch action {
+	case Action_View:
 		pv := game.View(requesterName, now)
 		j, err := json.Marshal(pv)
 		mustSucceed(err)
@@ -295,7 +339,8 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 			log.Println("err:", err)
 		}
 		return
-	} else if req.Method == "POST" {
+
+	case Action_Launch:
 		if !game.PlayerIsAlive(now, requesterName) {
 			w.WriteHeader(400)
 			fmt.Fprintln(w, "can't launch - you are dead!")
@@ -318,6 +363,9 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Println("launch! from", requesterName)
 		board.launchedTime = &now
+
+	default:
+		w.WriteHeader(400)
 	}
 }
 
