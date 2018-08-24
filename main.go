@@ -24,6 +24,7 @@ type PlayerName string
 type PlayerBoard struct {
 	falseAlarmTimes []time.Time
 	launchedTime    *time.Time
+	showsIfLaunched bool
 }
 
 func (pb *PlayerBoard) String() string {
@@ -231,7 +232,7 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result.TimeRemaining = (*game.Started).Add(*GameDuration).Sub(now)
 
 	board, _ := game.Boards[p]
-	if board.launchedTime != nil {
+	if board.showsIfLaunched && board.launchedTime != nil {
 		timeToMyImpact := board.launchedTime.Add(MissileFlightTime).Sub(now)
 		result.TimeToMyImpact = &timeToMyImpact
 	}
@@ -275,6 +276,7 @@ type Action int
 const (
 	Action_View Action = iota
 	Action_Launch
+	Action_Conceal
 )
 
 func parseRequest(req *http.Request) (PlayerName, Action, error) {
@@ -296,6 +298,8 @@ func parseRequest(req *http.Request) (PlayerName, Action, error) {
 		switch actionStr {
 		case "launch":
 			return playerName, Action_Launch, nil
+		case "conceal":
+			return playerName, Action_Conceal, nil
 		default:
 			return "", 0, errors.New(fmt.Sprintf("unknown action: %s", actionStr))
 		}
@@ -362,6 +366,11 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Println("launch! from", requesterName)
 		board.launchedTime = &now
+		board.showsIfLaunched = true
+
+	case Action_Conceal:
+		log.Println("conceal! from", requesterName)
+		board.showsIfLaunched = false
 
 	default:
 		replyErr(500, fmt.Sprintf("unknown action %d", action))
