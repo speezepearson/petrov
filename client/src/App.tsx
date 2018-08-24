@@ -10,7 +10,7 @@ function updateAppForever(app: App, playerName: string): () => void {
             `/${playerName}`,
             function(data) {
                 setTimeout(loop, 1000);
-                app.setState(data);
+                app.setState(JSON.parse(data));
             }
         );
     }
@@ -42,6 +42,9 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
     render() {
-        return <div>&#9762; Goodbye world! &#9762;</div>;
+        return <div>
+            <div>&#9762; Goodbye world! &#9762;</div>
+            <pre>{JSON.stringify(this.state, null, 2)}</pre>
+        </div>;
     }
 }
