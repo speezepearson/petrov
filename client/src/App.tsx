@@ -1,50 +1,95 @@
 import jQuery from 'jquery';
 import React from 'react';
 
-function updateAppForever(app: App, playerName: string): () => void {
-    let stopped = false;
+import { Timer } from './Timer'
 
-    function loop() {
-        if (stopped) return;
-        jQuery.get(
-            `/${playerName}`,
-            function(data) {
-                setTimeout(loop, 1000);
-                app.setState(JSON.parse(data));
-            }
-        );
-    }
+enum Phase {
+    ENDED = "Ended",
+    PRESTART = "PreStart",
+    RUNNING = "Running",
+    OVERTIME = "Overtime",
+}
 
-    loop();
-
-    return () => {stopped = true;};
+function nowPlus(seconds: number): Date {
+    const result = new Date();
+    result.setSeconds(result.getSeconds() + seconds);
+    return result;
 }
 
 type AppProps = {
     playerName: string;
 }
 type AppState = {
-    Phase: string;
-    TimeRemainingNs: number;
-    AlarmTimesNsRemaining: number[];
-    KilledBy: string;
-    TimeToMyImpactNs?: number;
+    phase: string;
+    timeRemaining: number;
+    alarmTimesRemaining: number[];
+    killedBy: string;
+    timeToMyImpact?: number;
 }
 
 export class App extends React.Component<AppProps, AppState> {
-    private stopUpdating?: () => void;
+    private updaterId?: number;
     componentWillMount() {
-        this.stopUpdating = updateAppForever(this, this.props.playerName);
+        this.updaterId = setInterval(this.fetchData.bind(this), 1000);
     }
     componentWillUnmount() {
-        if (this.stopUpdating) {
-            this.stopUpdating();
+        if (this.updaterId) {
+            clearInterval(this.updaterId);
         }
     }
     render() {
+        let displayed: any;
+        console.log("Rendering:", this.state);
+        if (!this.state) {
+            return "Loading...";
+        }
+        if (this.state.killedBy.length > 0) {
+            displayed = `Killed by ${this.state.killedBy}`;
+        } else {
+            switch (this.state.phase) {
+                case Phase.PRESTART:
+                    displayed = "Game not yet started.";
+                    break;
+                case Phase.RUNNING:
+                    displayed = <div>
+                        Time remaining: <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> <br />
+                        Timers:
+                        <ol>
+                            {this.state.alarmTimesRemaining.map((d, i) => <li key={i}><Timer zeroTime={nowPlus(d)} /></li>)}
+                        </ol>
+                    </div>;
+                    break;
+                case Phase.OVERTIME:
+                    displayed = "TODO";
+                    break;
+                case Phase.ENDED:
+                    displayed = `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
+                    break;
+                default:
+                    displayed = `Unknown phase: ${this.state.phase}`
+                    break;
+            }
+        }
         return <div>
-            <div>&#9762; Goodbye world! &#9762;</div>
+            {displayed}
             <pre>{JSON.stringify(this.state, null, 2)}</pre>
         </div>;
+    }
+
+    fetchData() {
+        jQuery.get(
+            `/${this.props.playerName}`,
+            dataText => {
+                const data = JSON.parse(dataText);
+                console.log(data);
+                this.setState({
+                    phase: data.Phase,
+                    timeRemaining: data.TimeRemaining / 1e9,
+                    alarmTimesRemaining: (data.AlarmTimesRemaining || []).map((x:number) => x/1e9),
+                    killedBy: data.KilledBy,
+                    timeToMyImpact: data.TimeToMyImpact || null,
+                });
+            }
+        );
     }
 }
