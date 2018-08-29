@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -274,42 +275,12 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 type Action int
 
 const (
-	Action_View Action = iota
+	Action_Status Action = iota
 	Action_Launch
 	Action_Conceal
 )
 
-func parseRequest(req *http.Request) (PlayerName, Action, error) {
-	components := strings.Split(strings.TrimLeft(req.URL.Path, "/"), "/")
-	switch req.Method {
-	case "GET":
-		if len(components) != 1 {
-			return "", 0, errors.New(fmt.Sprintf("bad GET path: %s", req.URL.Path))
-		}
-
-		return PlayerName(components[0]), Action_View, nil
-
-	case "POST":
-		if len(components) != 2 {
-			return "", 0, errors.New(fmt.Sprintf("bad POST path: %s", req.URL.Path))
-		}
-
-		playerName, actionStr := PlayerName(components[0]), components[1]
-		switch actionStr {
-		case "launch":
-			return playerName, Action_Launch, nil
-		case "conceal":
-			return playerName, Action_Conceal, nil
-		default:
-			return "", 0, errors.New(fmt.Sprintf("unknown action: %s", actionStr))
-		}
-
-	default:
-		return "", 0, errors.New(fmt.Sprintf("bad request type: %s", req.Method))
-	}
-}
-
-func HandleRequest(w http.ResponseWriter, req *http.Request) {
+func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterName PlayerName, action Action) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -320,11 +291,6 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	now := time.Now()
-	requesterName, action, err := parseRequest(req)
-	if err != nil {
-		replyErr(400, err.Error())
-		return
-	}
 
 	if *Debug {
 		log.Println(requesterName, "req=", *req, "state=", game.String())
@@ -339,7 +305,7 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	switch action {
-	case Action_View:
+	case Action_Status:
 		pv := game.View(requesterName, now)
 		j, err := json.Marshal(pv)
 		mustSucceed(err)
@@ -375,6 +341,94 @@ func HandleRequest(w http.ResponseWriter, req *http.Request) {
 	default:
 		replyErr(500, fmt.Sprintf("unknown action %d", action))
 	}
+}
+
+type gameHandler struct {
+	files map[string][]byte
+}
+
+func NewGameHandler(filePaths map[string]string) (*gameHandler, error) {
+	files := make(map[string][]byte)
+	for servePath, path := range filePaths {
+		data, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		files[servePath] = data
+	}
+
+	return &gameHandler{files: files}, nil
+}
+
+func (g gameHandler) serveFile(w http.ResponseWriter, path string) error {
+	data, ok := g.files[path]
+	if !ok {
+		return errors.New(fmt.Sprintf("unknown path %s", path))
+	}
+
+	w.WriteHeader(200)
+	if _, err := w.Write(data); err != nil {
+		log.Println("failed writing response?!", err)
+	}
+	return nil
+}
+
+func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	replyErr := func(code int, msg string) {
+		w.WriteHeader(code)
+		fmt.Fprintln(w, msg)
+		log.Println("bad request:", *req, " ==> ", code, msg)
+	}
+
+	components := strings.Split(strings.TrimLeft(req.URL.Path, "/"), "/")
+	switch req.Method {
+	case "GET":
+		switch len(components) {
+		case 1:
+			if err := g.serveFile(w, "/"); err != nil {
+				replyErr(404, err.Error())
+			}
+			return
+
+		case 2:
+			if components[1] == "status" {
+				g.action(w, req, PlayerName(components[0]), Action_Status)
+			} else {
+				if err := g.serveFile(w, "/"); err != nil {
+					replyErr(404, err.Error())
+				}
+				return
+			}
+
+		default:
+			replyErr(404, fmt.Sprintf("bad GET path: %s", req.URL.Path))
+
+		}
+		return
+
+	case "POST":
+		if len(components) != 2 {
+			replyErr(404, fmt.Sprintf("bad POST path: %s", req.URL.Path))
+			return
+		}
+
+		playerName, actionStr := PlayerName(components[0]), components[1]
+		switch actionStr {
+		case "launch":
+			g.action(w, req, playerName, Action_Launch)
+		case "conceal":
+			g.action(w, req, playerName, Action_Conceal)
+		default:
+			replyErr(404, fmt.Sprintf("unknown action: %s", actionStr))
+		}
+		return
+
+	default:
+		replyErr(400, fmt.Sprintf("bad request type: %s", req.Method))
+		return
+	}
+
 }
 
 func main() {
@@ -435,9 +489,17 @@ func main() {
 	}
 	mutex.Unlock()
 
+	gameHandler, err := NewGameHandler(map[string]string{
+		"/":              "./client/dist/index.html",
+		"/app.bundle.js": "./client/dist/app.bundle.js",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.Handle("/", gameHandler)
+
 	port := "2344"
 	log.Println("listening on", port)
-	http.HandleFunc("/", HandleRequest)
-	http.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./client/dist"))))
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
