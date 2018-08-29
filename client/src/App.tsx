@@ -2,6 +2,7 @@ import jQuery from 'jquery';
 import React from 'react';
 
 import { Timer } from './Timer'
+import {LaunchButton} from "./LaunchButton";
 
 enum Phase {
     ENDED = "Ended",
@@ -52,6 +53,7 @@ export class App extends React.Component<AppProps, AppState> {
                     break;
                 case Phase.RUNNING:
                     displayed = <div>
+                        <LaunchButton playerName={this.props.playerName} alreadyLaunched={!!this.state.timeToMyImpact}/>
                         Time remaining: <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> <br />
                         Timers:
                         <ol>
@@ -77,11 +79,9 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     fetchData() {
-        const hrefComponents = window.location.href.replace(/\/+$/, '').split('/');
-        let playerName = hrefComponents[hrefComponents.length - 1];
-        jQuery.get(
-            `/${playerName}/status`,
-            dataText => {
+        jQuery.get({
+            url: `/${this.props.playerName}/status`,
+            success: dataText => {
                 const data = JSON.parse(dataText);
                 console.log(data);
                 this.setState({
@@ -91,7 +91,7 @@ export class App extends React.Component<AppProps, AppState> {
                     killedBy: data.KilledBy,
                     timeToMyImpact: data.TimeToMyImpact || null,
                 });
-            }
-        );
+            },
+        });
     }
 }

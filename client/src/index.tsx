@@ -4,8 +4,10 @@ import jquery from 'jquery';
 import { App } from './App';
 
 window.addEventListener('load', () => {
+    const hrefComponents = window.location.href.replace(/\/+$/, '').split('/');
+    let playerName = hrefComponents[hrefComponents.length - 1];
     ReactDom.render(
-        <App playerName="Alice" />,
+        <App playerName={playerName} />,
         document.getElementById('react-root'),
     );
 });
