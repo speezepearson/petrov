@@ -312,6 +312,8 @@ func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterN
 		return
 
 	case Action_Launch:
+		board.showsIfLaunched = true
+
 		if !game.PlayerIsAlive(now, requesterName) {
 			replyErr(400, "can't launch - you are dead!")
 			return
@@ -328,7 +330,6 @@ func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterN
 		}
 		log.Println("launch! from", requesterName)
 		board.launchedTime = &now
-		board.showsIfLaunched = true
 
 	case Action_Conceal:
 		log.Println("conceal! from", requesterName)
