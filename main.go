@@ -381,10 +381,21 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Println("bad request:", *req, " ==> ", code, msg)
 	}
 
-	components := strings.Split(strings.TrimLeft(req.URL.Path, "/"), "/")
+	rawComponents := strings.Split(strings.TrimLeft(req.URL.Path, "/"), "/")
+	var components []string
+	for _, raw := range rawComponents {
+		if raw != "" {
+			components = append(components, raw)
+		}
+	}
+
 	switch req.Method {
 	case "GET":
 		switch len(components) {
+		case 0:
+			w.WriteHeader(200)
+			w.Write([]byte("<h1>THIS SPACE INTENTIONALLY LEFT BLANK</h1>"))
+
 		case 1:
 			if err := g.serveFile(w, "/"); err != nil {
 				replyErr(404, err.Error())
