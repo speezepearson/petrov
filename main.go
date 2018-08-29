@@ -371,10 +371,20 @@ func (g gameHandler) serveFile(w http.ResponseWriter, path string) error {
 	return nil
 }
 
+func SetAnticachingHeaders(headers http.Header) {
+	// taken from https://stackoverflow.com/questions/49547/how-to-control-web-page-caching-across-all-browsers
+	headers["Cache-Control:"] = []string{"no-cache", "no-store", "must-revalidate"}
+	headers["Pragma:"] = []string{"no-cache"}
+	headers["Expires:"] = []string{"0"}
+}
+
+
 func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if *Debug {
 		log.Println("req=", *req, "state=", game.String())
 	}
+
+	SetAnticachingHeaders(w.Header())
 
 	replyErr := func(code int, msg string) {
 		w.WriteHeader(code)
