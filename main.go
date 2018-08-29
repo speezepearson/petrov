@@ -292,10 +292,6 @@ func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterN
 
 	now := time.Now()
 
-	if *Debug {
-		log.Println(requesterName, "req=", *req, "state=", game.String())
-	}
-
 	board, ok := game.Boards[requesterName]
 	if !ok {
 		replyErr(
@@ -375,6 +371,10 @@ func (g gameHandler) serveFile(w http.ResponseWriter, path string) error {
 }
 
 func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if *Debug {
+		log.Println("req=", *req, "state=", game.String())
+	}
+
 	replyErr := func(code int, msg string) {
 		w.WriteHeader(code)
 		fmt.Fprintln(w, msg)
