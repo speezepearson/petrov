@@ -77,8 +77,10 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     fetchData() {
+        const hrefComponents = window.location.href.replace(/\/+$/, '').split('/');
+        let playerName = hrefComponents[hrefComponents.length - 1];
         jQuery.get(
-            `/${this.props.playerName}`,
+            `/${playerName}/status`,
             dataText => {
                 const data = JSON.parse(dataText);
                 console.log(data);
