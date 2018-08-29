@@ -406,7 +406,7 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			if components[1] == "status" {
 				g.action(w, req, PlayerName(components[0]), Action_Status)
 			} else {
-				if err := g.serveFile(w, "/"); err != nil {
+				if err := g.serveFile(w, components[1]); err != nil {
 					replyErr(404, err.Error())
 				}
 				return
