@@ -66,7 +66,7 @@ export class App extends React.Component<AppProps, AppState> {
                     displayed = `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
                     break;
                 default:
-                    displayed = `Unknown phase: ${this.state.phase}`
+                    displayed = `Unknown phase: ${this.state.phase}`;
                     break;
             }
         }
