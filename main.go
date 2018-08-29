@@ -378,7 +378,6 @@ func SetAnticachingHeaders(headers http.Header) {
 	headers["Expires:"] = []string{"0"}
 }
 
-
 func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if *Debug {
 		log.Println("req=", *req, "state=", game.String())
@@ -512,8 +511,8 @@ func main() {
 	mutex.Unlock()
 
 	gameHandler, err := NewGameHandler(map[string]string{
-		"/":              "./client/dist/index.html",
-		"/app.bundle.js": "./client/dist/app.bundle.js",
+		"/":             "./client/dist/index.html",
+		"app.bundle.js": "./client/dist/app.bundle.js",
 	})
 	if err != nil {
 		log.Fatal(err)
