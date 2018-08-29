@@ -2,7 +2,7 @@ import jQuery from 'jquery';
 import React from 'react';
 
 import { Timer } from './Timer'
-import {LaunchButton} from "./LaunchButton";
+import {LaunchOrConcealButton} from "./LaunchOrConcealButton";
 
 enum Phase {
     ENDED = "Ended",
@@ -53,7 +53,7 @@ export class App extends React.Component<AppProps, AppState> {
                     break;
                 case Phase.RUNNING:
                     displayed = <div>
-                        <LaunchButton playerName={this.props.playerName} alreadyLaunched={!!this.state.timeToMyImpact}/>
+                        <LaunchOrConcealButton playerName={this.props.playerName} launched={!!this.state.timeToMyImpact}/>
                         Time remaining: <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> <br />
                         Timers:
                         <ol>
