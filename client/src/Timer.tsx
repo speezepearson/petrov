@@ -20,7 +20,7 @@ function formatSeconds(seconds: number): string {
     [s, dt] = [Math.floor(dt), dt % 1];
     [hund, dt] = [Math.floor(100*dt), dt % .01];
 
-    return `${twoDigits(m)}:${twoDigits(s)}${(!negative && seconds<15) ? "."+twoDigits(hund) : ""}`;
+    return `${negative ? '-' : ''}${twoDigits(m)}:${twoDigits(s)}${(!negative && seconds<15) ? "."+twoDigits(hund) : ""}`;
 }
 
 export class Timer extends React.Component<TimerProps, TimerState> {

@@ -11,12 +11,21 @@ module.exports = {
         extensions: ['.ts', '.tsx', '.js', '.json']
     },
     module: {
-        rules: [{
+        rules: [
+          {
             // Include ts, tsx, and js files.
             test: /\.(tsx?)|(js)$/,
             exclude: /node_modules/,
             loader: 'babel-loader',
-        }],
+          },
+          {
+            test: /\.css$/,
+            use: [
+              'style-loader',
+              'css-loader',
+            ],
+          }
+        ],
     },
     mode: 'development'
 };

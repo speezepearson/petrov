@@ -1,6 +1,8 @@
 import jQuery from 'jquery';
 import React from 'react';
 
+import './LaunchOrConcealButton.css';
+
 type LaunchOrConcealButtonProps = {
     playerName: string;
     launched: boolean;
@@ -17,9 +19,12 @@ export class LaunchOrConcealButton extends React.Component<LaunchOrConcealButton
         };
     }
     render() {
-        return <button onClick={() => this.launchOrConceal()}>
-            {this.state.launched ? "Feign innocence" : "Launch"}
-        </button>;
+        return (
+            <button className={`launch-button launch-button--${this.state.launched ? 'ticking' : 'ready'}`}
+                    onClick={() => this.launchOrConceal()}>
+                {this.state.launched ? "Feign innocence" : "Launch"}
+            </button>
+        );
     }
 
     launchOrConceal() {

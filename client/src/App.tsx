@@ -21,7 +21,7 @@ type AppProps = {
     playerName: string;
 }
 type AppState = {
-    phase: string;
+    phase?: string;
     timeRemaining: number;
     alarmTimesRemaining: number[];
     killedBy: string;
@@ -30,6 +30,16 @@ type AppState = {
 
 export class App extends React.Component<AppProps, AppState> {
     private updaterId?: number;
+    constructor(props: AppProps) {
+      super(props);
+      this.state = {
+        phase: undefined,
+        timeRemaining: 0,
+        alarmTimesRemaining: [],
+        killedBy: '',
+        timeToMyImpact: undefined,
+      };
+    }
     componentWillMount() {
         this.updaterId = setInterval(this.fetchData.bind(this), 1000);
     }
@@ -39,43 +49,55 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
     render() {
-        let displayed: any;
         console.log("Rendering:", this.state);
-        if (!this.state) {
-            return "Loading...";
-        }
-        if (this.state.killedBy.length > 0) {
-            displayed = `Killed by ${this.state.killedBy}`;
-        } else {
-            switch (this.state.phase) {
-                case Phase.PRESTART:
-                    displayed = "Game not yet started.";
-                    break;
-                case Phase.RUNNING:
-                    displayed = <div>
-                        <LaunchOrConcealButton playerName={this.props.playerName} launched={!!this.state.timeToMyImpact}/>
-                        Time remaining: <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> <br />
-                        Timers:
-                        <ol>
-                            {this.state.alarmTimesRemaining.map((d, i) => <li key={i}><Timer zeroTime={nowPlus(d)} /></li>)}
-                        </ol>
+        switch (this.state.phase) {
+
+            case undefined:
+                return 'Loading...';
+
+            case Phase.PRESTART:
+                return 'Game not yet started.';
+
+            case Phase.RUNNING:
+            case Phase.OVERTIME:
+                let incoming: boolean = (this.state.alarmTimesRemaining.length > 0);
+                return <div>
+                    <div style={{position: 'absolute', left: '0', top: '0'}}>
+                        <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> remaining
+                    </div>
+
+                    <div style={{
+                        position: 'absolute',
+                        top: '20%',
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    }}>
+                        {incoming ? <div>INCOMING</div> : ''}
+                        {
+                            this.state.alarmTimesRemaining.map((d, i) => (
+                                <div key={i}>
+                                    <Timer zeroTime={nowPlus(d)} />
+                                </div>
+                            ))
+                        }
+                        {incoming ? <div>LAUNCH NOW</div> : ''}
+                        <div>
+                            <LaunchOrConcealButton
+                                playerName={this.props.playerName}
+                                launched={!!this.state.timeToMyImpact}
+                            />
+                        </div>
+                    </div>
                     </div>;
-                    break;
-                case Phase.OVERTIME:
-                    displayed = "TODO";
-                    break;
-                case Phase.ENDED:
-                    displayed = `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
-                    break;
-                default:
-                    displayed = `Unknown phase: ${this.state.phase}`;
-                    break;
-            }
+
+            case Phase.ENDED:
+                return `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
+
+            default:
+                return `Unknown phase: ${this.state.phase}`;
         }
-        return <div>
-            {displayed}
-            <pre>{JSON.stringify(this.state, null, 2)}</pre>
-        </div>;
     }
 
     fetchData() {
