@@ -33,15 +33,15 @@ export class App extends React.Component<AppProps, AppState> {
     constructor(props: AppProps) {
       super(props);
       this.state = {
-        phase: undefined,
-        timeRemaining: 0,
-        alarmTimesRemaining: [],
+        phase: Phase.RUNNING,
+        timeRemaining: 1,
+        alarmTimesRemaining: [1, 10, 100],
         killedBy: '',
         timeToMyImpact: undefined,
       };
     }
     componentWillMount() {
-        this.updaterId = setInterval(this.fetchData.bind(this), 1000);
+        // this.updaterId = setInterval(this.fetchData.bind(this), 1000);
     }
     componentWillUnmount() {
         if (this.updaterId) {
@@ -69,28 +69,32 @@ export class App extends React.Component<AppProps, AppState> {
                     <div style={{
                         position: 'absolute',
                         top: '20%',
+                        height: '50%',
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                     }}>
-                        {incoming ? <div>INCOMING</div> : ''}
+                        {incoming ? <div style={{flexGrow: 1}}>INCOMING</div> : ''}
                         {
                             this.state.alarmTimesRemaining.map((d, i) => (
-                                <div key={i}>
+                                <div style={{flexGrow: 1}} key={i}>
                                     <Timer zeroTime={nowPlus(d)} />
                                 </div>
                             ))
                         }
-                        {incoming ? <div>LAUNCH NOW</div> : ''}
-                        <div>
-                            <LaunchOrConcealButton
-                                playerName={this.props.playerName}
-                                launched={!!this.state.timeToMyImpact}
-                            />
-                        </div>
+                        {incoming ? <div style={{flexGrow: 1}}>LAUNCH NOW</div> : ''}
                     </div>
-                    </div>;
+                    <div style={{
+                        position: 'absolute',
+                        top: '75%',
+                    }}>
+                        <LaunchOrConcealButton
+                            playerName={this.props.playerName}
+                            launched={!!this.state.timeToMyImpact}
+                        />
+                    </div>
+                </div>;
 
             case Phase.ENDED:
                 return `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
