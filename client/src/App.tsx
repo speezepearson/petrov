@@ -3,6 +3,7 @@ import React from 'react';
 
 import { Timer } from './Timer'
 import {LaunchOrConcealButton} from "./LaunchOrConcealButton";
+import './App.css';
 
 enum Phase {
     ENDED = "Ended",
@@ -33,9 +34,9 @@ export class App extends React.Component<AppProps, AppState> {
     constructor(props: AppProps) {
       super(props);
       this.state = {
-        phase: Phase.RUNNING,
-        timeRemaining: 1,
-        alarmTimesRemaining: [1, 10, 100],
+        phase: undefined,
+        timeRemaining: 0,
+        alarmTimesRemaining: [],
         killedBy: '',
         timeToMyImpact: undefined,
       };

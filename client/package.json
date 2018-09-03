@@ -18,8 +18,10 @@
     "@types/jquery": "^3.3.6",
     "babel-loader": "^8.0.0-beta.2",
     "css-loader": "^1.0.0",
+    "file-loader": "^2.0.0",
     "style-loader": "^0.23.0",
     "typescript": "^2.9.1",
+    "url-loader": "^1.1.1",
     "webpack": "^4.17.1",
     "webpack-command": "^0.4.1",
     "yarn": "^1.9.4"
