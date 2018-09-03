@@ -44,7 +44,6 @@ export class Timer extends React.Component<TimerProps, TimerState> {
     }
 
     tick() {
-        let secondsRemaining = Math.min(this.state.secondsRemaining);
         this.setState({
             secondsRemaining: (this.props.zeroTime.getTime() - new Date().getTime()) / 1000,
         });
