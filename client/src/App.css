@@ -1,4 +1,43 @@
+html, body, #react-root {
+    min-height: 100%;
+}
+
 body {
+    font-family: Arial, sans-serif;
     background-image: url('map.png');
     background-size: cover;
+}
+
+#time-remaining {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#top-stuff {
+    position: absolute;
+    top: 10%;
+    bottom: 60%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center? */
+}
+
+#incoming-label {
+    align-self: flex-start;
+
+}
+#launch-now-label {
+    align-self: flex-end;
+}
+
+#bottom-stuff {
+    position: absolute;
+    top: 70%;
+    /*bottom: 100%;*/
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center; /* center? */
 }

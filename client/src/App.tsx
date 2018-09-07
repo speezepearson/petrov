@@ -63,36 +63,30 @@ export class App extends React.Component<AppProps, AppState> {
             case Phase.OVERTIME:
                 let incoming: boolean = (this.state.alarmTimesRemaining.length > 0);
                 return <div>
-                    <div style={{position: 'absolute', left: '0', top: '0'}}>
+                    <div id="time-remaining">
                         <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> remaining
                     </div>
 
-                    <div style={{
-                        position: 'absolute',
-                        top: '20%',
-                        height: '50%',
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                    }}>
-                        {incoming ? <div style={{flexGrow: 1}}>INCOMING</div> : ''}
+                    <div id="top-stuff">
                         {
-                            this.state.alarmTimesRemaining.map((d, i) => (
-                                <div style={{flexGrow: 1}} key={i}>
-                                    <Timer zeroTime={nowPlus(d)} />
-                                </div>
-                            ))
+                            incoming
+                            ? [
+                                <div style={{flexGrow: 1}} key="INCOMING">INCOMING</div>,
+                                ...this.state.alarmTimesRemaining.map((d, i) => (
+                                        <div style={{flexGrow: 1}} key={i}>
+                                            <Timer zeroTime={nowPlus(d)} />
+                                        </div>
+                                    )),
+                                <div style={{flexGrow: 1}} key="LAUNCH NOW">LAUNCH NOW</div>
+                              ]
+                            : ''
                         }
-                        {incoming ? <div style={{flexGrow: 1}}>LAUNCH NOW</div> : ''}
                     </div>
-                    <div style={{
-                        position: 'absolute',
-                        top: '75%',
-                    }}>
+
+                    <div id="bottom-stuff">
                         <LaunchOrConcealButton
                             playerName={this.props.playerName}
-                            launched={!!this.state.timeToMyImpact}
+                            impactTime={this.state.timeToMyImpact ? nowPlus(this.state.timeToMyImpact) : null}
                         />
                     </div>
                 </div>;
