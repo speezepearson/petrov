@@ -26,12 +26,11 @@ function formatSeconds(seconds: number): string {
 export class Timer extends React.Component<TimerProps, TimerState> {
     constructor(props: TimerProps) {
         super(props);
-        this.state = {secondsRemaining: 0};
-        this.tick();
+        this.state = {secondsRemaining: this.getSecondsRemaining()};
     }
     private updaterId?: number;
     componentWillMount() {
-        this.updaterId = setInterval(this.tick.bind(this), 10);
+        this.updaterId = window.setInterval(() => this.setState({secondsRemaining: this.getSecondsRemaining()}), 10);
     }
     componentWillUnmount() {
         if (this.updaterId) {
@@ -43,9 +42,7 @@ export class Timer extends React.Component<TimerProps, TimerState> {
         return formatSeconds(this.state.secondsRemaining);
     }
 
-    tick() {
-        this.setState({
-            secondsRemaining: (this.props.zeroTime.getTime() - new Date().getTime()) / 1000,
-        });
+    getSecondsRemaining(): number {
+        return (this.props.zeroTime.getTime() - new Date().getTime()) / 1000;
     }
 }

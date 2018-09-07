@@ -74,13 +74,17 @@ export class App extends React.Component<AppProps, AppState> {
                         {
                             incoming
                             ? [
-                                <div style={{flexGrow: 1}} key="INCOMING">INCOMING</div>,
-                                ...this.state.alarmTimesRemaining.map((d, i) => (
-                                        <div style={{flexGrow: 1}} key={i}>
-                                            <Timer zeroTime={nowPlus(d)} />
+                                <div id="incoming-label" key="INCOMING">INCOMING</div>,
+                                <div id="incoming-timers" key="incoming-timers">
+                                    {this.state.alarmTimesRemaining.map((d, i) => (
+                                        <div className="incoming-timers__timer-wrapper" key={i}>
+                                            <div className="incoming-timers__timer">
+                                                <Timer zeroTime={nowPlus(d)} />
+                                            </div>
                                         </div>
-                                    )),
-                                <div style={{flexGrow: 1}} key="LAUNCH NOW">LAUNCH NOW</div>
+                                    ))}
+                                </div>,
+                                <div id="launch-now-label" key="LAUNCH NOW">LAUNCH NOW</div>
                               ]
                             : ''
                         }
