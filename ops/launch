@@ -3,7 +3,9 @@
 set -e
 set -x
 
-DIRNAME=$1
-cd ~/$DIRNAME
+HOSTNAME=192.151.146.250
+DIRNAME=petrov-deploy-$$
 
-screen go run main.go -players="San Francisco,Seattle" -hostname=192.151.146.250
+git clone git@github.com:speezepearson/petrov.git /tmp/$DIRNAME
+rsync -avz --delete /tmp/$DIRNAME $HOSTNAME:
+ssh -t $HOSTNAME ./$DIRNAME/ops/internal/run-game $DIRNAME
