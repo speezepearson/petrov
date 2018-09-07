@@ -446,6 +446,10 @@ func main() {
 	flag.Parse()
 
 	playerNames := strings.Split(*players, ",")
+	if len(playerNames) != 2 {
+		log.Fatal("only 2 players supported ;)")
+	}
+
 	// LOL, global variables
 	game.Boards = make(map[PlayerName]*PlayerBoard)
 	for _, name := range playerNames {
