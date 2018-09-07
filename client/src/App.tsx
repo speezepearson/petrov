@@ -9,7 +9,6 @@ enum Phase {
     ENDED = "Ended",
     PRESTART = "PreStart",
     RUNNING = "Running",
-    OVERTIME = "Overtime",
 }
 
 function nowPlus(seconds: number): Date {
@@ -65,7 +64,6 @@ export class App extends React.Component<AppProps, AppState> {
                 return 'Game not yet started.';
 
             case Phase.RUNNING:
-            case Phase.OVERTIME:
                 let incoming: boolean = (this.state.alarmTimesRemaining.length > 0);
                 return <div>
                     <div id="time-remaining">

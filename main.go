@@ -101,7 +101,6 @@ type gamePhase string
 const (
 	PreStart gamePhase = "PreStart"
 	Running            = "Running"
-	Overtime           = "Overtime"
 	Ended              = "Ended"
 )
 
@@ -148,7 +147,7 @@ func (g *Game) Phase(now time.Time) gamePhase {
 
 	if now.After((*g.Started).Add(*GameDuration)) {
 		if g.TimersRemainLive(now) {
-			return Overtime
+			return Running
 		} else {
 			return Ended
 		}
@@ -323,7 +322,7 @@ func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterP
 			return
 		}
 
-		if game.Phase(now) != Running && game.Phase(now) != Overtime {
+		if game.Phase(now) != Running {
 			replyErr(400, "can't launch - game is not running!")
 			return
 		}
