@@ -51,6 +51,11 @@ export class App extends React.Component<AppProps, AppState> {
     }
     render() {
         console.log("Rendering:", this.state);
+
+        if (this.state.killedBy.length > 0) {
+            return `You were killed by ${this.state.killedBy}.`
+        }
+
         switch (this.state.phase) {
 
             case undefined:
