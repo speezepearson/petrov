@@ -9,7 +9,8 @@ html, body, #react-root
 
 body {
     font-family: Arial, sans-serif;
-    background-image: url('map.png');
+    /* the "linear-gradient to darken image" trick is from: https://stackoverflow.com/a/26621579 */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('map.png');
     background-size: cover;
     color: white;
 }
