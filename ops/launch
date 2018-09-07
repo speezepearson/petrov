@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+set -x
+
+DIRNAME=$1
+cd ~/$DIRNAME
+
+screen go run main.go -players="San Francisco,Seattle" -hostname=192.151.146.250

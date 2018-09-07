@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+set -x
+
+HOSTNAME=192.151.146.250
+DIRNAME=petrov-deploy-$$
+
+git clone git@github.com:speezepearson/petrov.git /tmp/$DIRNAME
+rsync -avz --delete /tmp/$DIRNAME $HOSTNAME:
+ssh -t $HOSTNAME ./$DIRNAME/ops/launch $DIRNAME
