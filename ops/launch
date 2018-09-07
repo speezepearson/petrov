@@ -5,7 +5,7 @@ set -e
 set -x
 
 USER=petrov
-HOSTNAME=192.151.146.250
+HOSTNAME=107.161.24.40
 DIRNAME=petrov-deploy-$$
 
 git clone git@github.com:speezepearson/petrov.git /tmp/$DIRNAME
