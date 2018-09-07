@@ -25,6 +25,7 @@ var players = flag.String("players", "Alice,Bob",
 
 // var hostname = flag.String("hostname", "globalthermonuclearwar.org", "Hostname to use for generating secret URLs")
 var hostname = flag.String("hostname", "localhost", "Hostname to use for generating secret URLs")
+var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
 
 type Password string
 type PlayerName string
@@ -45,8 +46,6 @@ func (pb *PlayerBoard) String() string {
 		pb.launchedTime,
 		strings.Join(falseAlarmStrs, ", "))
 }
-
-var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
 
 const (
 	MissileFlightTime                 = 10 * time.Second
