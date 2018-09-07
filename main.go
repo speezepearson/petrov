@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"crypto/rand"
+	secure_rand "crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -484,7 +485,7 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func makePassword() Password {
 	bytes := make([]byte, 32)
-	_, err := rand.Read(bytes)
+	_, err := secure_rand.Read(bytes)
 	mustSucceed(err)
 	return Password(hex.EncodeToString(bytes))
 }
