@@ -26,6 +26,10 @@ var players = flag.String("players", "Alice,Bob",
 // var hostname = flag.String("hostname", "globalthermonuclearwar.org", "Hostname to use for generating secret URLs")
 var hostname = flag.String("hostname", "localhost", "Hostname to use for generating secret URLs")
 var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
+var ForcedFalseAlarmSchedule = flag.String(
+	"ForcedFalseAlarmSchedule",
+	"15s,45s",
+	"Comma-separated list of durations after which to deterministically inject false alarms")
 
 type Password string
 type PlayerName string
