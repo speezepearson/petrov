@@ -76,8 +76,12 @@ func (g *Game) String() string {
 	return fmt.Sprintf("Game{Phase:%s, Started: %+v, Boards: [%s]}", g.Phase(now), g.Started, strings.Join(boardStrings, ", "))
 }
 
+func missileLandingTime(launched time.Time) time.Time {
+	return launched.Add(MissileFlightTime)
+}
+
 func missileLanded(now, launched time.Time) bool {
-	return now.After(launched.Add(MissileFlightTime))
+	return now.After(missileLandingTime(launched))
 }
 
 func (g *Game) TimersRemainLive(now time.Time) bool {
@@ -236,18 +240,42 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	}
 	alarmTimes := append([]time.Time{}, board.falseAlarmTimes...)
 
-	for launcherName, launcherBoard := range game.Boards {
-		if launcherName == p {
-			continue
+	{
+		type killedByRecord struct {
+			who PlayerName
+			at  time.Time
 		}
-		if launcherBoard.launchedTime == nil {
-			continue
+
+		var killedBy *killedByRecord
+		for launcherName, launcherBoard := range game.Boards {
+			if launcherName == p {
+				continue
+			}
+			if launcherBoard.launchedTime == nil {
+				continue
+			}
+			if missileLanded(now, *launcherBoard.launchedTime) {
+				possiblyKilledBy := killedByRecord{
+					who: launcherName,
+					at:  missileLandingTime(*launcherBoard.launchedTime),
+				}
+
+				if killedBy == nil {
+					killedBy = &possiblyKilledBy
+				}
+
+				if possiblyKilledBy.at.Before(killedBy.at) {
+					killedBy = &possiblyKilledBy
+				}
+			}
+
+			alarmTimes = append(alarmTimes, *launcherBoard.launchedTime)
 		}
-		if missileLanded(now, *launcherBoard.launchedTime) {
-			result.KilledBy = string(launcherName)
+
+		if killedBy != nil {
+			result.KilledBy = string(killedBy.who)
 			return result
 		}
-		alarmTimes = append(alarmTimes, *launcherBoard.launchedTime)
 	}
 
 	// Player is alive, so tell them status.
