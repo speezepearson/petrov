@@ -513,7 +513,7 @@ func main() {
 	gameHandler, err := NewGameHandler(map[string]string{
 		"/":             "./client/dist/index.html",
 		"app.bundle.js": "./client/dist/app.bundle.js",
-		"map.png":       "./client/dist/map.png",
+		"map.png":       "./client/dist/src/map.png",
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -42,7 +42,7 @@ export class App extends React.Component<AppProps, AppState> {
       };
     }
     componentWillMount() {
-        // this.updaterId = setInterval(this.fetchData.bind(this), 1000);
+        this.updaterId = setInterval(this.fetchData.bind(this), 1000);
     }
     componentWillUnmount() {
         if (this.updaterId) {
