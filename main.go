@@ -19,6 +19,7 @@ import (
 )
 
 var Debug = flag.Bool("debug", false, "")
+var players = flag.String("players", "Alice,Bob", "Comma-delimited list of players")
 
 type PlayerName string
 
@@ -147,20 +148,9 @@ func (g *Game) Phase(now time.Time) gamePhase {
 	return Running
 }
 
-var game = Game{
-	Boards: map[PlayerName]*PlayerBoard{
-		"Alice": &PlayerBoard{},
-		"Bob":   &PlayerBoard{},
-	},
-}
-
+// lol global variables
+var game Game
 var playerList []PlayerName
-
-func init() {
-	for p := range game.Boards {
-		playerList = append(playerList, p)
-	}
-}
 
 var mutex sync.Mutex
 
@@ -454,6 +444,17 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	flag.Parse()
+
+	playerNames := strings.Split(*players, ",")
+	// LOL, global variables
+	game.Boards = make(map[PlayerName]*PlayerBoard)
+	for _, name := range playerNames {
+		game.Boards[PlayerName(name)] = &PlayerBoard{}
+	}
+	// LOL GLOBAL VARIABLES
+	for p := range game.Boards {
+		playerList = append(playerList, p)
+	}
 
 	go (func() {
 		for {
