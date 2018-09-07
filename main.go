@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -21,6 +22,10 @@ import (
 var Debug = flag.Bool("debug", false, "")
 var players = flag.String("players", "Alice,Bob", "Comma-delimited list of players")
 
+// var hostname = flag.String("hostname", "globalthermonuclearwar.org", "Hostname to use for generating secret URLs")
+var hostname = flag.String("hostname", "localhost", "Hostname to use for generating secret URLs")
+
+type Password string
 type PlayerName string
 
 type PlayerBoard struct {
@@ -50,6 +55,9 @@ const (
 type Game struct {
 	Started *time.Time // nil -> not started
 	Boards  map[PlayerName]*PlayerBoard
+
+	PasswordToPlayer map[Password]PlayerName
+	PlayerToPassword map[PlayerName]Password
 }
 
 func (g *Game) Start(now time.Time) {
@@ -150,7 +158,6 @@ func (g *Game) Phase(now time.Time) gamePhase {
 
 // lol global variables
 var game Game
-var playerList []PlayerName
 
 var mutex sync.Mutex
 
@@ -270,7 +277,7 @@ const (
 	Action_Conceal
 )
 
-func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterName PlayerName, action Action) {
+func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterPassword Password, action Action) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -281,6 +288,12 @@ func (g gameHandler) action(w http.ResponseWriter, req *http.Request, requesterN
 	}
 
 	now := time.Now()
+
+	requesterName, ok := game.PasswordToPlayer[requesterPassword]
+	if !ok {
+		replyErr(403, "bad password")
+		return
+	}
 
 	board, ok := game.Boards[requesterName]
 	if !ok {
@@ -404,7 +417,7 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		case 2:
 			if components[1] == "status" {
-				g.action(w, req, PlayerName(components[0]), Action_Status)
+				g.action(w, req, Password(components[0]), Action_Status)
 			} else {
 				if err := g.serveFile(w, components[1]); err != nil {
 					replyErr(404, err.Error())
@@ -424,12 +437,12 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		playerName, actionStr := PlayerName(components[0]), components[1]
+		password, actionStr := Password(components[0]), components[1]
 		switch actionStr {
 		case "launch":
-			g.action(w, req, playerName, Action_Launch)
+			g.action(w, req, password, Action_Launch)
 		case "conceal":
-			g.action(w, req, playerName, Action_Conceal)
+			g.action(w, req, password, Action_Conceal)
 		default:
 			replyErr(404, fmt.Sprintf("unknown action: %s", actionStr))
 		}
@@ -440,6 +453,13 @@ func (g gameHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+}
+
+func makePassword() Password {
+	bytes := make([]byte, 32)
+	_, err := rand.Read(bytes)
+	mustSucceed(err)
+	return Password(hex.EncodeToString(bytes))
 }
 
 func main() {
@@ -456,8 +476,12 @@ func main() {
 		game.Boards[PlayerName(name)] = &PlayerBoard{}
 	}
 	// LOL GLOBAL VARIABLES
-	for p := range game.Boards {
-		playerList = append(playerList, p)
+	game.PasswordToPlayer = make(map[Password]PlayerName)
+	game.PlayerToPassword = make(map[PlayerName]Password)
+	for playerName := range game.Boards {
+		password := makePassword()
+		game.PasswordToPlayer[password] = playerName
+		game.PlayerToPassword[playerName] = password
 	}
 
 	go (func() {
@@ -528,5 +552,12 @@ func main() {
 
 	port := "2344"
 	log.Println("listening on", port)
+
+	for playerName, password := range game.PlayerToPassword {
+		url := fmt.Sprintf("http://%s:%s/%s", *hostname, port, password)
+
+		log.Println(playerName, "@", url)
+	}
+
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
