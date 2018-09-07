@@ -22,34 +22,40 @@ type AppProps = {
 }
 type AppState = {
     phase?: string;
-    timeRemaining: number;
-    alarmTimesRemaining: number[];
+    gameEndTime?: Date;
+    alarmImpactTimes: Date[];
     killedBy: string;
-    timeToMyImpact?: number;
+    myImpactTime?: Date;
+    currentTime: Date;
 }
 
 export class App extends React.Component<AppProps, AppState> {
-    private updaterId?: number;
+    private fetcherId?: number;
+    private tickerId?: number;
     constructor(props: AppProps) {
       super(props);
       this.state = {
         phase: undefined,
-        timeRemaining: 0,
-        alarmTimesRemaining: [],
+        gameEndTime: undefined,
+        alarmImpactTimes: [],
         killedBy: '',
-        timeToMyImpact: undefined,
+        myImpactTime: undefined,
+        currentTime: new Date(),
       };
     }
     componentWillMount() {
-        this.updaterId = setInterval(this.fetchData.bind(this), 1000);
+        this.fetcherId = window.setInterval(this.fetchData.bind(this), 1000);
+        this.tickerId = window.setInterval(() => this.setState({currentTime: new Date()}), 10);
     }
     componentWillUnmount() {
-        if (this.updaterId) {
-            clearInterval(this.updaterId);
+        if (this.fetcherId) {
+            clearInterval(this.fetcherId);
+        }
+        if (this.tickerId) {
+            clearInterval(this.tickerId);
         }
     }
     render() {
-        console.log("Rendering:", this.state);
 
         if (this.state.killedBy.length > 0) {
             return `You were killed by ${this.state.killedBy}.`
@@ -64,10 +70,10 @@ export class App extends React.Component<AppProps, AppState> {
                 return 'Game not yet started.';
 
             case Phase.RUNNING:
-                let incoming: boolean = (this.state.alarmTimesRemaining.length > 0);
+                const incoming: boolean = (this.state.alarmImpactTimes.length > 0);
                 return <div>
                     <div id="time-remaining">
-                        <Timer zeroTime={nowPlus(this.state.timeRemaining)} /> remaining
+                        {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} /> remaining</div> : ''}
                     </div>
 
                     <div id="top-stuff">
@@ -76,10 +82,10 @@ export class App extends React.Component<AppProps, AppState> {
                             ? [
                                 <div id="incoming-label" key="INCOMING">INCOMING</div>,
                                 <div id="incoming-timers" key="incoming-timers">
-                                    {this.state.alarmTimesRemaining.map((d, i) => (
+                                    {this.state.alarmImpactTimes.map((d, i) => (
                                         <div className="incoming-timers__timer-wrapper" key={i}>
                                             <div className="incoming-timers__timer">
-                                                <Timer zeroTime={nowPlus(d)} />
+                                                <Timer currentTime={this.state.currentTime} zeroTime={d} />
                                             </div>
                                         </div>
                                     ))}
@@ -93,13 +99,14 @@ export class App extends React.Component<AppProps, AppState> {
                     <div id="bottom-stuff">
                         <LaunchOrConcealButton
                             playerName={this.props.playerName}
-                            impactTime={this.state.timeToMyImpact ? nowPlus(this.state.timeToMyImpact) : null}
+                            impactTime={this.state.myImpactTime || null}
+                            currentTime={this.state.currentTime}
                         />
                     </div>
                 </div>;
 
             case Phase.ENDED:
-                return `Game over! You're alive! Everyone else is ${this.state.timeToMyImpact ? "dead. Remember? You killed them." : "alive too!"}`;
+                return `Game over! You're alive! Everyone else is ${this.state.myImpactTime ? "dead. Remember? You killed them." : "alive too!"}`;
 
             default:
                 return `Unknown phase: ${this.state.phase}`;
@@ -111,13 +118,15 @@ export class App extends React.Component<AppProps, AppState> {
             url: `/${this.props.playerName}/status`,
             success: dataText => {
                 const data = JSON.parse(dataText);
-                console.log(data);
+                const now = new Date();
+                console.log("received", data, "at", now);
                 this.setState({
                     phase: data.Phase,
-                    timeRemaining: data.TimeRemaining / 1e9,
-                    alarmTimesRemaining: (data.AlarmTimesRemaining || []).map((x:number) => x/1e9),
+                    gameEndTime: nowPlus(data.TimeRemaining / 1e9),
+                    alarmImpactTimes: (data.AlarmTimesRemaining || []).map((x:number) => nowPlus(x/1e9)),
                     killedBy: data.KilledBy,
-                    timeToMyImpact: data.TimeToMyImpact || null,
+                    myImpactTime: data.TimeToMyImpact ? nowPlus(data.TimeToMyImpact / 1e9) : undefined,
+                    currentTime: now,
                 });
             },
         });

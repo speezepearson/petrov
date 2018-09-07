@@ -1,10 +1,8 @@
 import React from 'react';
 
 type TimerProps = {
+    currentTime: Date;
     zeroTime: Date;
-}
-type TimerState = {
-    secondsRemaining: number;
 }
 
 function twoDigits(x: number): string {
@@ -23,26 +21,8 @@ function formatSeconds(seconds: number): string {
     return `${negative ? '-' : ''}${twoDigits(m)}:${twoDigits(s)}${(!negative && seconds<15) ? "."+twoDigits(hund) : ""}`;
 }
 
-export class Timer extends React.Component<TimerProps, TimerState> {
-    constructor(props: TimerProps) {
-        super(props);
-        this.state = {secondsRemaining: this.getSecondsRemaining()};
-    }
-    private updaterId?: number;
-    componentWillMount() {
-        this.updaterId = window.setInterval(() => this.setState({secondsRemaining: this.getSecondsRemaining()}), 10);
-    }
-    componentWillUnmount() {
-        if (this.updaterId) {
-            clearInterval(this.updaterId);
-        }
-    }
-
-    render() {
-        return formatSeconds(this.state.secondsRemaining);
-    }
-
-    getSecondsRemaining(): number {
-        return (this.props.zeroTime.getTime() - new Date().getTime()) / 1000;
-    }
+export function Timer(props: TimerProps) {
+    return <span>
+        {formatSeconds((props.zeroTime.getTime() - props.currentTime.getTime()) / 1000)}
+    </span>;
 }
