@@ -20,7 +20,8 @@ import (
 )
 
 var Debug = flag.Bool("debug", false, "")
-var players = flag.String("players", "Alice,Bob", "Comma-delimited list of players")
+var players = flag.String("players", "Alice,Bob",
+	"Comma-delimited list of players. Optionally, specify a password with e.g. Alice:password,Bob:otherpassword")
 
 // var hostname = flag.String("hostname", "globalthermonuclearwar.org", "Hostname to use for generating secret URLs")
 var hostname = flag.String("hostname", "localhost", "Hostname to use for generating secret URLs")
@@ -462,24 +463,35 @@ func makePassword() Password {
 	return Password(hex.EncodeToString(bytes))
 }
 
+func parsePlayerSpec(specStr string) (PlayerName, Password) {
+	spec := strings.Split(specStr, ":")
+	switch len(spec) {
+	case 1:
+		return PlayerName(spec[0]), makePassword()
+	case 2:
+		return PlayerName(spec[0]), Password(spec[1])
+	default:
+		log.Fatalf("malformed player spec: %s", specStr)
+		panic("wat")
+	}
+}
+
 func main() {
 	flag.Parse()
 
-	playerNames := strings.Split(*players, ",")
-	if len(playerNames) != 2 {
+	playerSpecs := strings.Split(*players, ",")
+	if len(playerSpecs) != 2 {
 		log.Fatal("only 2 players supported ;)")
 	}
 
 	// LOL, global variables
 	game.Boards = make(map[PlayerName]*PlayerBoard)
-	for _, name := range playerNames {
-		game.Boards[PlayerName(name)] = &PlayerBoard{}
-	}
-	// LOL GLOBAL VARIABLES
 	game.PasswordToPlayer = make(map[Password]PlayerName)
 	game.PlayerToPassword = make(map[PlayerName]Password)
-	for playerName := range game.Boards {
-		password := makePassword()
+	for _, spec := range playerSpecs {
+		playerName, password := parsePlayerSpec(spec)
+
+		game.Boards[playerName] = &PlayerBoard{}
 		game.PasswordToPlayer[password] = playerName
 		game.PlayerToPassword[playerName] = password
 	}
