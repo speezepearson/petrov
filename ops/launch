@@ -10,4 +10,4 @@ DIRNAME=petrov-deploy-$$
 
 git clone git@github.com:speezepearson/petrov.git /tmp/$DIRNAME
 rsync -avz --delete /tmp/$DIRNAME $USER@$HOSTNAME:
-ssh -t $USER@$HOSTNAME ./$DIRNAME/ops/internal/run-game $DIRNAME
+ssh -t $USER@$HOSTNAME ./$DIRNAME/ops/internal/run-game $DIRNAME $HOSTNAME
