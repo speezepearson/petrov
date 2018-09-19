@@ -60,7 +60,11 @@ export class App extends React.Component<AppProps, AppState> {
     render() {
 
         if (this.state.killedBy.length > 0) {
-            return `You were killed by ${this.state.killedBy}.`
+            return <div id="modal">
+                <div id="modal__content">
+                    You were killed by {this.state.killedBy}.
+                </div>
+            </div>
         }
 
         switch (this.state.phase) {
@@ -82,11 +86,11 @@ export class App extends React.Component<AppProps, AppState> {
             case Phase.RUNNING:
                 const incoming: boolean = (this.state.alarmImpactTimes.length > 0);
                 return [
-                    <div id="time-remaining">
+                    <div key="time-remaining" id="time-remaining">
                         {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} /> remaining</div> : ''}
                     </div>,
 
-                    <div id="top-stuff">
+                    <div key="top-stuff" id="top-stuff">
                         {
                             incoming
                             ? [
@@ -106,7 +110,7 @@ export class App extends React.Component<AppProps, AppState> {
                         }
                     </div>,
 
-                    <div id="bottom-stuff">
+                    <div key="bottom-stuff" id="bottom-stuff">
                         <LaunchOrConcealButton
                             playerName={this.props.playerName}
                             impactTime={this.state.myImpactTime || null}
@@ -125,10 +129,18 @@ export class App extends React.Component<AppProps, AppState> {
                 ];
 
             case Phase.ENDED:
-                return `Game over! You're alive! Everyone else is ${this.state.myImpactTime ? "dead. Remember? You killed them." : "alive too!"}`;
+                return <div id="modal">
+                    <div id="modal__content">
+                        Game over! You're alive! Everyone else is {this.state.myImpactTime ? ["dead.", <br/>, "Remember? You killed them."] : "alive too!"}
+                    </div>
+                </div>;
 
             default:
-                return `Unknown phase: ${this.state.phase}`;
+                return <div id="modal">
+                    <div id="modal__content">
+                        Unknown phase: ${this.state.phase}
+                    </div>
+                </div>;
         }
     }
 
