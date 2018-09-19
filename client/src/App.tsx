@@ -46,7 +46,7 @@ export class App extends React.Component<AppProps, AppState> {
       };
     }
     componentWillMount() {
-        this.fetcherId = window.setInterval(this.fetchData.bind(this), 1000);
+        this.fetcherId = window.setInterval(() => this.fetchData(), 1000);
         this.tickerId = window.setInterval(() => this.setState({currentTime: new Date()}), 10);
     }
     componentWillUnmount() {
