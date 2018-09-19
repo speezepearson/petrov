@@ -91,7 +91,8 @@ export class App extends React.Component<AppProps, AppState> {
                 </div>;
 
             case Phase.RUNNING:
-                const incoming: boolean = (this.state.alarmImpactTimes.length > 0);
+                const impactTimes: Date[] = this.state.alarmImpactTimes.filter(t => t > this.state.currentTime);
+                const incoming: boolean = (impactTimes.length > 0);
                 return [
                     <div key="time-remaining" id="time-remaining">
                         {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} /> remaining</div> : ''}
@@ -101,9 +102,13 @@ export class App extends React.Component<AppProps, AppState> {
                         {
                             incoming
                             ? [
-                                <div id="incoming-label" key="INCOMING">INCOMING</div>,
+                                <div id="incoming-label" key="INCOMING">
+                                    {impactTimes.length == 1
+                                     ? "MISSILE INCOMING"
+                                     : `${impactTimes.length} MISSILES INCOMING`}
+                                </div>,
                                 <div id="incoming-timers" key="incoming-timers">
-                                    {this.state.alarmImpactTimes.map((d, i) => (
+                                    {impactTimes.map((d, i) => (
                                         <div className="incoming-timers__timer-wrapper" key={i}>
                                             <div className="incoming-timers__timer">
                                                 <Timer currentTime={this.state.currentTime} zeroTime={d} />
