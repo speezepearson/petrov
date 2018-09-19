@@ -8,4 +8,4 @@ HOSTNAME=$2
 cd ~/$DIRNAME
 
 netstat -tlnp | grep -q :2344 && pkill go
-screen go run main.go -players="San Francisco,Seattle" -hostname=$HOSTNAME
+screen go run main.go -players="Seattle,Oxford" -hostname=$HOSTNAME
