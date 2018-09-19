@@ -582,6 +582,9 @@ func main() {
 		"/":             "./client/dist/index.html",
 		"app.bundle.js": "./client/dist/app.bundle.js",
 		"map.png":       "./client/dist/src/map.png",
+		"klaxon.mp3":    "./client/dist/src/klaxon.mp3",
+		"launch.mp3":    "./client/dist/src/launch.mp3",
+		"kaboom.mp3":    "./client/dist/src/kaboom.mp3",
 	})
 	if err != nil {
 		log.Fatal(err)

@@ -19,6 +19,13 @@ module.exports = {
             loader: 'babel-loader',
           },
           {
+              test: /\.mp3$/,
+              loader: 'file-loader',
+              options: {
+                  name: '[path][name].[ext]',
+              },
+          },
+          {
             test: /\.css$/,
             use: [
               'style-loader',

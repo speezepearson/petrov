@@ -2,7 +2,8 @@ import jQuery from 'jquery';
 import React from 'react';
 
 import { Timer } from './Timer'
-import {LaunchOrConcealButton} from "./LaunchOrConcealButton";
+import { LaunchOrConcealButton } from "./LaunchOrConcealButton";
+import { KLAXON, FWOOSH, KABOOM } from './sounds';
 import './App.css';
 
 enum Phase {
@@ -59,12 +60,18 @@ export class App extends React.Component<AppProps, AppState> {
     }
     render() {
 
+        (window as any)._sounds = {KLAXON, FWOOSH, KABOOM};
+
         if (this.state.killedBy.length > 0) {
             return <div id="modal">
                 <div id="modal__content">
                     You were killed by {this.state.killedBy}.
                 </div>
             </div>
+        }
+
+        if (this.state.alarmImpactTimes.filter(x => (x > nowPlus(MISSILE_FLIGHT_TIME_SEC-5))).length > 0) {
+            KLAXON.play();
         }
 
         switch (this.state.phase) {
@@ -116,6 +123,7 @@ export class App extends React.Component<AppProps, AppState> {
                             impactTime={this.state.myImpactTime || null}
                             onClick={() => {
                                 const hadLaunched: boolean = !!this.state.myImpactTime;
+                                if (!hadLaunched) FWOOSH.play();
                                 this.setState({
                                     myImpactTime: hadLaunched ? undefined : nowPlus(MISSILE_FLIGHT_TIME_SEC),
                                 });
@@ -151,6 +159,12 @@ export class App extends React.Component<AppProps, AppState> {
                 const data = JSON.parse(dataText);
                 const now = new Date();
                 console.log("received", data, "at", now);
+                if (data.KilledBy && !this.state.killedBy) {
+                    console.log('playing kaboom');
+                    KLAXON.reset();
+                    FWOOSH.reset();
+                    KABOOM.play();
+                }
                 this.setState({
                     phase: data.Phase,
                     gameEndTime: nowPlus(data.TimeRemaining / 1e9),
