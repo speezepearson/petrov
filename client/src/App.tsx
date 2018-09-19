@@ -11,6 +11,8 @@ enum Phase {
     RUNNING = "Running",
 }
 
+const MISSILE_FLIGHT_TIME_SEC: number = 10;
+
 function nowPlus(seconds: number): Date {
     const result = new Date();
     result.setSeconds(result.getSeconds() + seconds);
@@ -64,17 +66,25 @@ export class App extends React.Component<AppProps, AppState> {
         switch (this.state.phase) {
 
             case undefined:
-                return 'Loading...';
+                return <div id="modal">
+                    <div id="modal__content">
+                        Connecting...
+                    </div>
+                </div>;
 
             case Phase.PRESTART:
-                return 'Game not yet started.';
+                return <div id="modal">
+                    <div id="modal__content">
+                        Waiting for early-warning system to come online...
+                    </div>
+                </div>;
 
             case Phase.RUNNING:
                 const incoming: boolean = (this.state.alarmImpactTimes.length > 0);
-                return <div>
+                return [
                     <div id="time-remaining">
                         {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} /> remaining</div> : ''}
-                    </div>
+                    </div>,
 
                     <div id="top-stuff">
                         {
@@ -94,16 +104,25 @@ export class App extends React.Component<AppProps, AppState> {
                               ]
                             : ''
                         }
-                    </div>
+                    </div>,
 
                     <div id="bottom-stuff">
                         <LaunchOrConcealButton
                             playerName={this.props.playerName}
                             impactTime={this.state.myImpactTime || null}
+                            onClick={() => {
+                                const hadLaunched: boolean = !!this.state.myImpactTime;
+                                this.setState({
+                                    myImpactTime: hadLaunched ? undefined : nowPlus(MISSILE_FLIGHT_TIME_SEC),
+                                });
+                                jQuery.post({
+                                    url: `/${this.props.playerName}/${hadLaunched ? 'conceal' : 'launch'}`
+                                })
+                            }}
                             currentTime={this.state.currentTime}
                         />
-                    </div>
-                </div>;
+                    </div>,
+                ];
 
             case Phase.ENDED:
                 return `Game over! You're alive! Everyone else is ${this.state.myImpactTime ? "dead. Remember? You killed them." : "alive too!"}`;

@@ -15,6 +15,13 @@ body {
     color: white;
 }
 
+#react-root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 #time-remaining {
     position: absolute;
     top: 0;
@@ -37,6 +44,23 @@ body {
     justify-self: flex-start;
     font-size: 2em;
     color: red;
+}
+
+#modal {
+    height: 20%;
+    width: 30%;
+
+    background: black;
+    border: 1px solid white;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#modal__content {
+    margin: 2em;
 }
 
 #incoming-timers {
