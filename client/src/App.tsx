@@ -95,7 +95,7 @@ export class App extends React.Component<AppProps, AppState> {
                 const incoming: boolean = (impactTimes.length > 0);
                 return [
                     <div key="time-remaining" id="time-remaining">
-                        {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} /> remaining</div> : ''}
+                        {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining</div> : ''}
                     </div>,
 
                     <div key="top-stuff" id="top-stuff">

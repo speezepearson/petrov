@@ -15,7 +15,7 @@ export function LaunchOrConcealButton(props: LaunchOrConcealButtonProps) {
     return (
         <button className={`launch-button launch-button--${props.impactTime ? 'ticking' : 'ready'}`}
                 onClick={props.onClick}>
-            {props.impactTime ? <Timer currentTime={props.currentTime} zeroTime={props.impactTime}/> : ''}
+            {props.impactTime ? <Timer currentTime={props.currentTime} zeroTime={props.impactTime} showHours={false} showFractionBelow={10} /> : ''}
             {props.impactTime ? <br /> : ''}
             {props.impactTime ? "Feign innocence" : "Launch"}
         </button>
