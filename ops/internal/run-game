@@ -13,4 +13,4 @@ screen go run main.go \
        -hostname=$HOSTNAME \
        -GameDuration=3h \
        -MissileFlightTime=15m \
-       -MeanFalseAlarmInterval=1m
+       -MeanFalseAlarmInterval=60m
