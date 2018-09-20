@@ -8,4 +8,9 @@ HOSTNAME=$2
 cd ~/$DIRNAME
 
 netstat -tlnp | grep -q :2344 && pkill go
-screen go run main.go -players="Seattle,Oxford" -hostname=$HOSTNAME
+screen go run main.go \
+       -players="Seattle,Oxford" \
+       -hostname=$HOSTNAME \
+       -GameDuration=3h \
+       -MissileFlightTime=15m \
+       -MeanFalseAlarmInterval=1m
