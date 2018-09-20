@@ -28,6 +28,11 @@ var players = flag.String("players", "Alice,Bob",
 // var hostname = flag.String("hostname", "globalthermonuclearwar.org", "Hostname to use for generating secret URLs")
 var hostname = flag.String("hostname", "localhost", "Hostname to use for generating secret URLs")
 var GameDuration = flag.Duration("GameDuration", 1*time.Minute, "")
+var MissileFlightTime = flag.Duration("MissileFlightTime", 10*time.Second,
+	"Time from launch notification to missile impact. Also controls false alarm duration.")
+var MeanFalseAlarmInterval = flag.Duration(
+	"MeanFalseAlarmInterval", 30*time.Second,
+	"Mean interval between false alarms.")
 
 type Password string
 type PlayerName string
@@ -48,11 +53,6 @@ func (pb *PlayerBoard) String() string {
 		pb.launchedTime,
 		strings.Join(falseAlarmStrs, ", "))
 }
-
-const (
-	MissileFlightTime                 = 10 * time.Second
-	MeanFalseAlarmsPerSecondPerPlayer = 1 / float64(30)
-)
 
 type Game struct {
 	Started *time.Time // nil -> not started
@@ -78,7 +78,7 @@ func (g *Game) String() string {
 }
 
 func missileLandingTime(launched time.Time) time.Time {
-	return launched.Add(MissileFlightTime)
+	return launched.Add(*MissileFlightTime)
 }
 
 func missileLanded(now, launched time.Time) bool {
@@ -166,9 +166,9 @@ var game Game
 
 var mutex sync.Mutex
 
-func addFalseAlarmsForever(victimName PlayerName) {
+func addFalseAlarmsForever(victimName PlayerName, meanFalseAlarmsPerSecond float64) {
 	for {
-		delay := rand.ExpFloat64() / MeanFalseAlarmsPerSecondPerPlayer
+		delay := rand.ExpFloat64() / meanFalseAlarmsPerSecond
 		time.Sleep(time.Duration(delay * float64(time.Second)))
 		func() {
 			mutex.Lock()
@@ -236,7 +236,7 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 
 	board, _ := game.Boards[p]
 	if board.showsIfLaunched && board.launchedTime != nil {
-		timeToMyImpact := board.launchedTime.Add(MissileFlightTime).Sub(now)
+		timeToMyImpact := board.launchedTime.Add(*MissileFlightTime).Sub(now)
 		result.TimeToMyImpact = &timeToMyImpact
 	}
 	alarmTimes := append([]time.Time{}, board.falseAlarmTimes...)
@@ -290,7 +290,7 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 
 	for _, t := range alarmTimes {
 		if !missileLanded(now, t) {
-			alarmTimesRemaining = append(alarmTimesRemaining, t.Add(MissileFlightTime).Sub(now))
+			alarmTimesRemaining = append(alarmTimesRemaining, t.Add(*MissileFlightTime).Sub(now))
 		}
 	}
 
@@ -573,9 +573,11 @@ func main() {
 		}
 	})()
 
+	meanFalseAlarmsPerSecondPerPlayer := 1 / MeanFalseAlarmInterval.Seconds()
+
 	mutex.Lock()
 	for player, _ := range game.Boards {
-		go addFalseAlarmsForever(player)
+		go addFalseAlarmsForever(player, meanFalseAlarmsPerSecondPerPlayer)
 	}
 	mutex.Unlock()
 
