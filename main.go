@@ -21,6 +21,7 @@ import (
 )
 
 var Debug = flag.Bool("debug", false, "")
+var port = flag.String("port", "2344", "")
 var players = flag.String("players", "Alice,Bob",
 	"Comma-delimited list of players. Optionally, specify a password with e.g. Alice:password,Bob:otherpassword")
 
@@ -592,14 +593,13 @@ func main() {
 
 	http.Handle("/", gameHandler)
 
-	port := "2344"
-	log.Println("listening on", port)
+	log.Println("listening on", *port)
 
 	for playerName, password := range game.PlayerToPassword {
-		url := fmt.Sprintf("http://%s:%s/%s", *hostname, port, password)
+		url := fmt.Sprintf("http://%s:%s/%s", *hostname, *port, password)
 
 		log.Println(playerName, "@", url)
 	}
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+*port, nil))
 }
