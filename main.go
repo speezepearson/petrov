@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -506,6 +507,11 @@ func parsePlayerSpec(specStr string) (PlayerName, Password) {
 
 func main() {
 	flag.Parse()
+
+	logFileName := time.Now().Format("2006-01-02_15:04:05") + ".log"
+	logFile, err := os.Create(logFileName)
+	mustSucceed(err)
+	log.SetOutput(io.MultiWriter(logFile, os.Stdout))
 
 	playerSpecs := strings.Split(*players, ",")
 	if len(playerSpecs) != 2 {
