@@ -169,8 +169,12 @@ var mutex sync.Mutex
 
 func addFalseAlarmsForever(victimName PlayerName, meanFalseAlarmsPerSecond float64) {
 	for {
-		delay := rand.ExpFloat64() / meanFalseAlarmsPerSecond
-		time.Sleep(time.Duration(delay * float64(time.Second)))
+		delay :=
+			time.Duration((rand.ExpFloat64() / meanFalseAlarmsPerSecond) * float64(time.Second))
+		log.Println(
+			"scheduled false alarm for", victimName,
+			"at approximately", time.Now().Add(delay).Format("2006-01-02 15:04:05"))
+		time.Sleep(delay)
 		func() {
 			mutex.Lock()
 			defer mutex.Unlock()
