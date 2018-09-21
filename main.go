@@ -196,6 +196,7 @@ func addFalseAlarm(victimName PlayerName, at time.Time) {
 }
 
 type PlayerView struct {
+	Player              string
 	TimeRemaining       time.Duration
 	AlarmTimesRemaining []time.Duration
 	KilledBy            string
@@ -226,7 +227,8 @@ func assert(condition bool) {
 
 func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result := PlayerView{
-		Phase: game.Phase(now),
+		Player: string(p),
+		Phase:  game.Phase(now),
 	}
 	if game.Started == nil {
 		assert(game.Phase(now) == PreStart)
