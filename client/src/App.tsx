@@ -21,7 +21,7 @@ function nowPlus(seconds: number): Date {
 }
 
 type AppProps = {
-    playerName: string;
+    password: string;
 }
 type AppState = {
     phase?: string;
@@ -31,6 +31,7 @@ type AppState = {
     myImpactTime?: Date;
     currentTime: Date;
     lastSynced?: Date;
+    playerName?: string;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -46,6 +47,7 @@ export class App extends React.Component<AppProps, AppState> {
         myImpactTime: undefined,
         currentTime: new Date(),
         lastSynced: undefined,
+        playerName: undefined,
       };
     }
     componentWillMount() {
@@ -60,7 +62,34 @@ export class App extends React.Component<AppProps, AppState> {
             clearInterval(this.tickerId);
         }
     }
+
     render() {
+        return [this.renderOverlay(), this.renderGame()];
+    }
+
+    renderOverlay() {
+        const timeRemaining = (
+            (this.state.phase === Phase.RUNNING)
+            ? <div key="time-remaining" id="time-remaining">
+                {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining</div> : ''}
+              </div>
+            : ''
+        );
+        const syncIndicator = (
+            (this.state.lastSynced && (this.state.lastSynced < nowPlus(-5)))
+            ? <div key="sync-indicator" id="sync-indicator">(flying blind: last sync was at {this.state.lastSynced.toLocaleString()})</div>
+            : ''
+        );
+        return [
+            timeRemaining,
+            syncIndicator,
+            <div key="player-name" id="player-name">
+                {this.state.playerName}
+            </div>,
+        ];
+    }
+
+    renderGame() {
 
         (window as any)._sounds = {KLAXON, FWOOSH, KABOOM};
 
@@ -96,13 +125,6 @@ export class App extends React.Component<AppProps, AppState> {
                 const impactTimes: Date[] = this.state.alarmImpactTimes.filter(t => t > this.state.currentTime);
                 const incoming: boolean = (impactTimes.length > 0);
                 return [
-                    <div key="time-remaining" id="time-remaining">
-                        {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining</div> : ''}
-                    </div>,
-
-                    (this.state.lastSynced && (this.state.lastSynced < nowPlus(-5)))
-                        ? <div key="sync-indicator" id="sync-indicator">(flying blind: last sync was at {this.state.lastSynced.toLocaleString()})</div>
-                        : '',
 
                     <div key="top-stuff" id="top-stuff">
                         {
@@ -130,7 +152,6 @@ export class App extends React.Component<AppProps, AppState> {
 
                     <div key="bottom-stuff" id="bottom-stuff">
                         <LaunchOrConcealButton
-                            playerName={this.props.playerName}
                             impactTime={this.state.myImpactTime || null}
                             onClick={() => {
                                 const hadLaunched: boolean = !!this.state.myImpactTime;
@@ -139,7 +160,7 @@ export class App extends React.Component<AppProps, AppState> {
                                     myImpactTime: hadLaunched ? undefined : nowPlus(MISSILE_FLIGHT_TIME_SEC),
                                 });
                                 jQuery.post({
-                                    url: `/${this.props.playerName}/${hadLaunched ? 'conceal' : 'launch'}`
+                                    url: `/${this.props.password}/${hadLaunched ? 'conceal' : 'launch'}`
                                 })
                             }}
                             currentTime={this.state.currentTime}
@@ -165,7 +186,7 @@ export class App extends React.Component<AppProps, AppState> {
 
     fetchData() {
         jQuery.get({
-            url: `/${this.props.playerName}/status`,
+            url: `/${this.props.password}/status`,
             success: dataText => {
                 const data = JSON.parse(dataText);
                 const now = new Date();
@@ -183,6 +204,7 @@ export class App extends React.Component<AppProps, AppState> {
                     killedBy: data.KilledBy,
                     myImpactTime: data.TimeToMyImpact ? nowPlus(data.TimeToMyImpact / 1e9) : undefined,
                     lastSynced: now,
+                    playerName: data.Player,
                 });
             },
         });

@@ -5,7 +5,6 @@ import { Timer } from './Timer';
 import './LaunchOrConcealButton.css';
 
 type LaunchOrConcealButtonProps = {
-    playerName: string;
     impactTime: Date | null;
     currentTime: Date;
     onClick: () => void;

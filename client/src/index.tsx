@@ -5,9 +5,9 @@ import { App } from './App';
 
 window.addEventListener('load', () => {
     const hrefComponents = window.location.href.replace(/\/+$/, '').split('/');
-    let playerName = hrefComponents[hrefComponents.length - 1];
+    let password = hrefComponents[hrefComponents.length - 1];
     ReactDom.render(
-        <App playerName={playerName} />,
+        <App password={password} />,
         document.getElementById('react-root'),
     );
 });

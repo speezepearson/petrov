@@ -73,6 +73,12 @@ body {
     margin: 2em;
 }
 
+#player-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
 #incoming-timers {
     flex-grow: 1;
     display: flex;
