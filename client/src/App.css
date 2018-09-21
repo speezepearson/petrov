@@ -52,6 +52,10 @@ body {
     color: red;
 }
 
+.large {
+    font-size: 1.5em;
+}
+
 #modal {
     height: 20%;
     width: 30%;
@@ -87,6 +91,7 @@ body {
     flex-grow: 1;
     display: inline-block;
     vertical-align: middle;
+    text-align: center;
 }
 
 #launch-now-label {

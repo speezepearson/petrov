@@ -114,9 +114,9 @@ export class App extends React.Component<AppProps, AppState> {
                                      : `${impactTimes.length} MISSILES INCOMING`}
                                 </div>,
                                 <div id="incoming-timers" key="incoming-timers">
-                                    {impactTimes.map((d, i) => (
+                                    {impactTimes.sort().map((d, i) => (
                                         <div className="incoming-timers__timer-wrapper" key={i}>
-                                            <div className="incoming-timers__timer">
+                                            <div className={`incoming-timers__timer ${i===0 ? 'large' : ''}`}>
                                                 <Timer currentTime={this.state.currentTime} zeroTime={d} />
                                             </div>
                                         </div>
