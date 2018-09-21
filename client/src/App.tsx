@@ -12,8 +12,6 @@ enum Phase {
     RUNNING = "Running",
 }
 
-const MISSILE_FLIGHT_TIME_SEC: number = 10;
-
 function nowPlus(seconds: number): Date {
     const result = new Date();
     result.setSeconds(result.getSeconds() + seconds);
@@ -32,6 +30,7 @@ type AppState = {
     currentTime: Date;
     lastSynced?: Date;
     playerName?: string;
+    missileFlightTime?: number;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -101,7 +100,7 @@ export class App extends React.Component<AppProps, AppState> {
             </div>
         }
 
-        if (this.state.alarmImpactTimes.filter(x => (x > nowPlus(MISSILE_FLIGHT_TIME_SEC-5))).length > 0) {
+        if (this.state.missileFlightTime && (this.state.alarmImpactTimes.filter(x => (x > nowPlus(this.state.missileFlightTime!-5))).length > 0)) {
             KLAXON.play();
         }
 
@@ -157,7 +156,7 @@ export class App extends React.Component<AppProps, AppState> {
                                 const hadLaunched: boolean = !!this.state.myImpactTime;
                                 if (!hadLaunched) FWOOSH.play();
                                 this.setState({
-                                    myImpactTime: hadLaunched ? undefined : nowPlus(MISSILE_FLIGHT_TIME_SEC),
+                                    myImpactTime: hadLaunched ? undefined : nowPlus(this.state.missileFlightTime!),
                                 });
                                 jQuery.post({
                                     url: `/${this.props.password}/${hadLaunched ? 'conceal' : 'launch'}`
@@ -205,6 +204,7 @@ export class App extends React.Component<AppProps, AppState> {
                     myImpactTime: data.TimeToMyImpact ? nowPlus(data.TimeToMyImpact / 1e9) : undefined,
                     lastSynced: now,
                     playerName: data.Player,
+                    missileFlightTime: data.MissileFlightTime / 1e9,
                 });
             },
         });
