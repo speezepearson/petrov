@@ -12,7 +12,7 @@ type LaunchOrConcealButtonProps = {
 }
 
 function formatTimeToImpact(impactTime: Date | null, currentTime: Date) {
-    if (!impactTime) return '';
+    if (!impactTime) return '(unlaunched)';
     if (impactTime < currentTime) return '(landed)';
     return <Timer currentTime={currentTime} zeroTime={impactTime} showHours={false} />
 }
