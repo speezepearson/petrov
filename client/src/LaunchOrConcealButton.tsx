@@ -11,6 +11,12 @@ type LaunchOrConcealButtonProps = {
     onConceal: () => void;
 }
 
+function formatTimeToImpact(impactTime: Date | null, currentTime: Date) {
+    if (!impactTime) return '';
+    if (impactTime < currentTime) return '(landed)';
+    return <Timer currentTime={currentTime} zeroTime={impactTime} showHours={false} />
+}
+
 export function LaunchOrConcealButton(props: LaunchOrConcealButtonProps) {
     return (
         <div className="launch-button-container">
@@ -23,7 +29,7 @@ export function LaunchOrConcealButton(props: LaunchOrConcealButtonProps) {
                     Time to impact:
                 </div>
                 <div onClick={props.onConceal} style={{flexGrow: 1, cursor: 'pointer'}}>
-                    {props.impactTime ? <Timer currentTime={props.currentTime} zeroTime={props.impactTime} showHours={false} /> : ''}
+                    {formatTimeToImpact(props.impactTime, props.currentTime)}
                 </div>
                 <div style={{alignSelf: 'flex-end'}}>
                     (click to hide)
