@@ -514,6 +514,7 @@ func parsePlayerSpec(specStr string) (PlayerName, Password) {
 }
 
 func main() {
+	log.Println("invoked as", strings.Join(os.Args, " "))
 	flag.Parse()
 
 	logFileName := time.Now().Format("2006-01-02_15:04:05") + ".log"
