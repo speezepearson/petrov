@@ -30,6 +30,7 @@ type AppState = {
     killedBy: string;
     myImpactTime?: Date;
     currentTime: Date;
+    lastSynced?: Date;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -44,6 +45,7 @@ export class App extends React.Component<AppProps, AppState> {
         killedBy: '',
         myImpactTime: undefined,
         currentTime: new Date(),
+        lastSynced: undefined,
       };
     }
     componentWillMount() {
@@ -97,6 +99,10 @@ export class App extends React.Component<AppProps, AppState> {
                     <div key="time-remaining" id="time-remaining">
                         {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining</div> : ''}
                     </div>,
+
+                    (this.state.lastSynced && (this.state.lastSynced < nowPlus(-5)))
+                        ? <div key="sync-indicator" id="sync-indicator">(flying blind: last sync was at {this.state.lastSynced.toLocaleString()})</div>
+                        : '',
 
                     <div key="top-stuff" id="top-stuff">
                         {
@@ -176,7 +182,7 @@ export class App extends React.Component<AppProps, AppState> {
                     alarmImpactTimes: (data.AlarmTimesRemaining || []).map((x:number) => nowPlus(x/1e9)),
                     killedBy: data.KilledBy,
                     myImpactTime: data.TimeToMyImpact ? nowPlus(data.TimeToMyImpact / 1e9) : undefined,
-                    currentTime: now,
+                    lastSynced: now,
                 });
             },
         });
