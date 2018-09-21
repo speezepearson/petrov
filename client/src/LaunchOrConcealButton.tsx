@@ -7,16 +7,28 @@ import './LaunchOrConcealButton.css';
 type LaunchOrConcealButtonProps = {
     impactTime: Date | null;
     currentTime: Date;
-    onClick: () => void;
+    onLaunch: () => void;
+    onConceal: () => void;
 }
 
 export function LaunchOrConcealButton(props: LaunchOrConcealButtonProps) {
     return (
-        <button className={`launch-button launch-button--${props.impactTime ? 'ticking' : 'ready'}`}
-                onClick={props.onClick}>
-            {props.impactTime ? <Timer currentTime={props.currentTime} zeroTime={props.impactTime} showHours={false} showFractionBelow={10} /> : ''}
-            {props.impactTime ? <br /> : ''}
-            {props.impactTime ? "Feign innocence" : "Launch"}
-        </button>
+        <div className="launch-button-container">
+            <button className={`launch-button launch-button--${props.impactTime ? 'ticking' : 'ready'}`}
+                    onClick={props.onLaunch}>
+                Launch
+            </button>
+            <div className="time-to-impact" style={{display: 'flex', flexDirection: 'row'}}>
+                <div style={{alignSelf: 'flex-start'}}>
+                    Time to impact:
+                </div>
+                <div onClick={props.onConceal} style={{flexGrow: 1, cursor: 'pointer'}}>
+                    {props.impactTime ? <Timer currentTime={props.currentTime} zeroTime={props.impactTime} showHours={false} /> : ''}
+                </div>
+                <div style={{alignSelf: 'flex-end'}}>
+                    (click to hide)
+                </div>
+            </div>
+        </div>
     );
 }

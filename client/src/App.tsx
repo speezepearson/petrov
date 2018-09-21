@@ -159,14 +159,22 @@ export class App extends React.Component<AppProps, AppState> {
                     <div key="bottom-stuff" id="bottom-stuff">
                         <LaunchOrConcealButton
                             impactTime={this.state.myImpactTime || null}
-                            onClick={() => {
-                                const hadLaunched: boolean = !!this.state.myImpactTime;
-                                if (!hadLaunched) FWOOSH.play();
+                            onConceal={() => {
+                                if (!this.state.myImpactTime) return;
                                 this.setState({
-                                    myImpactTime: hadLaunched ? undefined : nowPlus(this.state.missileFlightTime!),
+                                    myImpactTime: undefined,
                                 });
                                 jQuery.post({
-                                    url: `/${this.props.password}/${hadLaunched ? 'conceal' : 'launch'}`
+                                    url: `/${this.props.password}/conceal`,
+                                })
+                            }}
+                            onLaunch={() => {
+                                if (!!this.state.myImpactTime) return;
+                                this.setState({
+                                    myImpactTime: nowPlus(this.state.missileFlightTime!),
+                                });
+                                jQuery.post({
+                                    url: `/${this.props.password}/launch`,
                                 })
                             }}
                             currentTime={this.state.currentTime}

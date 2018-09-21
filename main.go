@@ -240,7 +240,7 @@ func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result.TimeRemaining = (*game.Started).Add(*GameDuration).Sub(now)
 
 	board, _ := game.Boards[p]
-	if board.showsIfLaunched && board.launchedTime != nil {
+	if (game.Phase(now) == Ended || board.showsIfLaunched) && board.launchedTime != nil {
 		timeToMyImpact := board.launchedTime.Add(*MissileFlightTime).Sub(now)
 		result.TimeToMyImpact = &timeToMyImpact
 	}
