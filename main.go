@@ -202,6 +202,7 @@ type PlayerView struct {
 	KilledBy            string
 	Phase               gamePhase
 	TimeToMyImpact      *time.Duration
+	MissileFlightTime   time.Duration
 }
 
 type FuckGo_lessthan_time_dot_Time_greaterthan []time.Time
@@ -227,8 +228,9 @@ func assert(condition bool) {
 
 func (game *Game) View(p PlayerName, now time.Time) PlayerView {
 	result := PlayerView{
-		Player: string(p),
-		Phase:  game.Phase(now),
+		Player:            string(p),
+		Phase:             game.Phase(now),
+		MissileFlightTime: *MissileFlightTime,
 	}
 	if game.Started == nil {
 		assert(game.Phase(now) == PreStart)
