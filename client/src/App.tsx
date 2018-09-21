@@ -72,7 +72,7 @@ export class App extends React.Component<AppProps, AppState> {
             return <div id="modal">
                 <div id="modal__content">
                     <button className="connect-button" onClick={() => this.setState({interactedWith: true})}>
-                        Connect
+                        Click to Connect
                     </button>
                 </div>
             </div>

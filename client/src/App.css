@@ -116,4 +116,5 @@ body {
     background-color: black;
     border: 3px solid lightgreen;
     border-radius: 0.2em;
+    cursor: pointer;
 }
