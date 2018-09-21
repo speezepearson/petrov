@@ -22,12 +22,6 @@ body {
     justify-content: center;
 }
 
-#sync-indicator {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
 #time-remaining {
     position: absolute;
     top: 0;

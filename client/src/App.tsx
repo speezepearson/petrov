@@ -62,7 +62,20 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
+    isSyncFailing(): boolean {
+        return (!!this.state.lastSynced && (this.state.lastSynced < nowPlus(-5)))
+    }
+
     render() {
+        if (this.isSyncFailing()) {
+            KLAXON.play();
+            return <div id="modal" style={{backgroundColor: 'green'}}>
+                <div id="modal__content">
+                    Lost connection to server! <br />
+                    NOTIFY GAME CONTROL.
+                </div>
+            </div>;
+        }
         return [this.renderOverlay(), this.renderGame()];
     }
 
@@ -74,14 +87,8 @@ export class App extends React.Component<AppProps, AppState> {
               </div>
             : ''
         );
-        const syncIndicator = (
-            (this.state.lastSynced && (this.state.lastSynced < nowPlus(-5)))
-            ? <div key="sync-indicator" id="sync-indicator">(flying blind: last sync was at {this.state.lastSynced.toLocaleString()})</div>
-            : ''
-        );
         return [
             timeRemaining,
-            syncIndicator,
             <div key="player-name" id="player-name">
                 {this.state.playerName}
             </div>,

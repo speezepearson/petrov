@@ -16,6 +16,7 @@ class Sound {
 
     play() {
         if (this.playing) return;
+        console.log('playing '+this.audio);
         this.playing = true;
         this.audio.play();
         window.setTimeout(() => this.reset(), this.durationUpperBoundMs);
