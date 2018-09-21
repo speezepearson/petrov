@@ -22,6 +22,7 @@ type AppProps = {
     password: string;
 }
 type AppState = {
+    interactedWith?: boolean;
     phase?: string;
     gameEndTime?: Date;
     alarmImpactTimes: Date[];
@@ -67,6 +68,15 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     render() {
+        if (!this.state.interactedWith) {
+            return <div id="modal">
+                <div id="modal__content">
+                    <button className="connect-button" onClick={() => this.setState({interactedWith: true})}>
+                        Connect
+                    </button>
+                </div>
+            </div>
+        }
         if (this.isSyncFailing()) {
             KLAXON.play();
             return <div id="modal" style={{backgroundColor: 'green'}}>
