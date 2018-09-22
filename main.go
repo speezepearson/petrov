@@ -199,6 +199,20 @@ func addFalseAlarm(victimName PlayerName, at time.Time) {
 	board.falseAlarmTimes = append(board.falseAlarmTimes, at)
 }
 
+func sleepAndAlarm(victimName PlayerName, delay time.Duration) {
+	log.Println(
+		"manually scheduled false alarm for", victimName,
+		"at approximately", time.Now().Add(delay).Format("2006-01-02 15:04:05"))
+	time.Sleep(delay)
+
+	func() {
+		mutex.Lock()
+		defer mutex.Unlock()
+		now := time.Now()
+		addFalseAlarm(victimName, now)
+	}()
+}
+
 type PlayerView struct {
 	Player              string
 	TimeRemaining       time.Duration
@@ -563,13 +577,25 @@ func main() {
 
 				switch command {
 				case "a":
-					if len(args) != 2 {
+					switch len(args) {
+					default:
 						log.Println("wrong number of args for", command)
 						return
-					}
-					victimName := PlayerName(args[1])
-					addFalseAlarm(victimName, time.Now())
 
+					case 2:
+						victimName := PlayerName(args[1])
+						addFalseAlarm(victimName, time.Now())
+
+					case 3:
+						victimName := PlayerName(args[1])
+						duration, err := time.ParseDuration(args[2])
+						if err != nil {
+							log.Println("couldn't parse duration:", err)
+							return
+						}
+
+						go sleepAndAlarm(victimName, duration)
+					}
 				case "s":
 					if game.Phase(now) != PreStart {
 						log.Println("game not in prestart")
