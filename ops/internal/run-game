@@ -9,7 +9,7 @@ cd ~/$DIRNAME
 
 netstat -tlnp | grep -q :2344 && pkill go
 screen go run main.go \
-       -players="Seattle,Oxford" \
+       -players="Seattle:seattle-uneven-very-stunned-revisable-tyke-translate-astronomy-rockslide,Oxford:oxford-resolved-anyone-mandate-juniper-mushy-carton-pound-ambiguous" \
        -hostname=$HOSTNAME \
        -GameDuration=3h \
        -MissileFlightTime=15m \
