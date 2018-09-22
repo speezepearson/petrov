@@ -594,6 +594,11 @@ func main() {
 							return
 						}
 
+						if _, ok := game.Boards[victimName]; !ok {
+							log.Println("unknown player", victimName)
+							return
+						}
+
 						go sleepAndAlarm(victimName, duration)
 					}
 				case "s":
