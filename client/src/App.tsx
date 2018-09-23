@@ -90,10 +90,16 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     renderOverlay() {
+        const isOvertime = this.state.gameEndTime && (this.state.gameEndTime < this.state.currentTime);
         const timeRemaining = (
             (this.state.phase === Phase.RUNNING)
             ? <div key="time-remaining" id="time-remaining">
-                {this.state.gameEndTime ? <div><Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining</div> : ''}
+                {this.state.gameEndTime
+                 ? <div>
+                     <Timer currentTime={this.state.currentTime} zeroTime={this.state.gameEndTime} showHours={true} /> remaining
+                     {isOvertime ? ' (OVERTIME)' : ''}
+                   </div>
+                 : ''}
               </div>
             : ''
         );
