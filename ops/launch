@@ -1,13 +1,30 @@
 #!/bin/bash
 # Run me from your laptop.
 
+USAGE="$0 PETROV_USER PETROV_HOSTNAME PLAYER_A PLAYER_B"
+EXAMPLE="$0 petrov 123.45.67.89 Seattle:seattle-password Oxford:oxford-password    to run a Seattle-vs-Oxford game as petrov@123.45.67.89"
+
+bad-usage() {
+    echo "$@" >&2
+    echo "Usage: $USAGE" >&2
+    echo "Example: $EXAMPLE" >&2
+    exit 1
+}
+
+[ "$#" = 4 ] || bad-usage 'wrong number of arguments'
+PETROV_USER=$1; shift
+PETROV_HOSTNAME=$1; shift
+PLAYER_A=$1; shift
+PLAYER_B=$2; shift
+
+[ -n "$PETROV_USER" ] || bad-usage "PETROV_USER must not be empty"
+[ -n "$PETROV_HOSTNAME" ] || bad-usage "PETROV_HOSTNAME must not be empty"
+
 set -e
 set -x
 
-USER=petrov
-HOSTNAME=107.161.24.40
-DIRNAME=petrov-deploy-$$
+DIRNAME="petrov-deploy-$$"
 
-git clone --depth 1 git@github.com:speezepearson/petrov.git /tmp/$DIRNAME
-rsync -avz --delete /tmp/$DIRNAME $USER@$HOSTNAME:
-ssh -t $USER@$HOSTNAME ./$DIRNAME/ops/internal/run-game $DIRNAME $HOSTNAME
+git clone --depth 1 https://github.com/speezepearson/petrov.git "/tmp/$DIRNAME"
+rsync -avz --delete "/tmp/$DIRNAME" "$PETROV_USER@$PETROV_HOSTNAME:"
+ssh -t "$PETROV_USER@$PETROV_HOSTNAME" "./$DIRNAME/ops/internal/run-game" "$DIRNAME" "$PETROV_HOSTNAME" "$PLAYER_A" "$PLAYER_B"
