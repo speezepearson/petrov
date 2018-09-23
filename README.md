@@ -6,6 +6,14 @@ A webapp to play mutually assured destruction between Petrov Day parties, as pla
 
 ![Screenshot](https://raw.githubusercontent.com/speezepearson/petrov/master/screenshot.png)
 
+# Game setup
+
+Suppose you own a server with a public IP address, `123.45.67.89`, and that you can SSH into `petrov@123.45.67.89`. Then, to get an instance of the game running:
+
+1. **Install Go on the server.** `ssh petrov@123.45.67.89 'sudo apt install golang'` should do it.
+2. **Clone this repo.** (On the server or not -- doesn't matter.) `git clone --depth 1 https://github.com/speezepearson/petrov.git` should do it.
+3. **Deploy.** Something like `cd petrov; ./ops/launch petrov 123.45.67.89 Seattle:secret-seattle-password Oxford:secret-oxford-password` should do it. This will rsync the code onto `petrov@123.45.67.89`, SSH in, and start the game running, printing out URLs like  `http://123.45.67.89/secret-seattle-password` that you can pass along to the Seattle/Oxford partymasters.
+
 # Player instructions
 
 ```
