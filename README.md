@@ -1,5 +1,7 @@
 # Petrov Day Button Game
 
+Developed by Spencer Pearson and William Ehlhardt.
+
 A webapp to play mutually assured destruction between Petrov Day parties, as played at the Seattle/Oxford 2018 Petrov Day parties on September 22, 2018. Features a button, an early warning system, the opportunity to launch a second strike, and, of course, false alarms.
 
 ![Screenshot](https://raw.githubusercontent.com/speezepearson/petrov/master/screenshot.png)
