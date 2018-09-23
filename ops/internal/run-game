@@ -12,10 +12,10 @@ bad-usage() {
 }
 
 [ "$#" = 4 ] || bad-usage 'wrong number of arguments'
-DIRNAME=$1; shift
-HOSTNAME=$1; shift
-PLAYER_A=$1; shift
-PLAYER_B=$2; shift
+DIRNAME=$1; shift; [ -n "$DIRNAME" ] || bad-usage "DIRNAME must not be empty"
+HOSTNAME=$1; shift; [ -n "$HOSTNAME" ] || bad-usage "HOSTNAME must not be empty"
+PLAYER_A=$1; shift; [ -n "$PLAYER_A" ] || bad-usage "PLAYER_A must not be empty"
+PLAYER_B=$1; shift; [ -n "$PLAYER_B" ] || bad-usage "PLAYER_B must not be empty"
 
 set -e
 set -x

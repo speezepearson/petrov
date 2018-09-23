@@ -11,14 +11,11 @@ bad-usage() {
     exit 1
 }
 
-[ "$#" = 4 ] || bad-usage 'wrong number of arguments'
-PETROV_USER=$1; shift
-PETROV_HOSTNAME=$1; shift
-PLAYER_A=$1; shift
-PLAYER_B=$2; shift
-
-[ -n "$PETROV_USER" ] || bad-usage "PETROV_USER must not be empty"
-[ -n "$PETROV_HOSTNAME" ] || bad-usage "PETROV_HOSTNAME must not be empty"
+[ "$#" = 4 ] || bad-usage "wrong number of arguments (got $#, expected 4)"
+PETROV_USER=$1; shift; [ -n "$PETROV_USER" ] || bad-usage "PETROV_USER must not be empty"
+PETROV_HOSTNAME=$1; shift; [ -n "$PETROV_HOSTNAME" ] || bad-usage "PETROV_HOSTNAME must not be empty"
+PLAYER_A=$1; shift; [ -n "$PLAYER_A" ] || bad-usage "PLAYER_A must not be empty"
+PLAYER_B=$1; shift; [ -n "$PLAYER_B" ] || bad-usage "PLAYER_B must not be empty"
 
 set -e
 set -x
