@@ -26,6 +26,6 @@ netstat -tlnp | grep -q :2344 && pkill go
 screen go run main.go \
        -players="$PLAYER_A,$PLAYER_B" \
        -hostname="$HOSTNAME" \
-       -GameDuration=2h30m \
-       -MissileFlightTime=15m \
-       -MeanFalseAlarmInterval=60m
+       -GameDuration=1m \
+       -MissileFlightTime=30s \
+       -MeanFalseAlarmInterval=5s
